@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LC Performance — Dashboard</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════
+     SIDEBAR
+════════════════════════════════════════════════════ -->
+<aside class="sidebar">
+  <div class="sidebar-header">
+    <img src="/img/logo.jpg" alt="LC Performance" class="sidebar-logo-img">
+  </div>
+
+  <nav class="sidebar-nav">
+    <a href="#" class="nav-item active" data-tab="tab-whatsapp">
+      <span class="nav-icon">📱</span> Conexión WhatsApp
+    </a>
+    <a href="#" class="nav-item" data-tab="tab-instagram">
+      <span class="nav-icon">📸</span> Conexión Instagram
+      <span id="ig-nav-dot" style="width:8px;height:8px;border-radius:50%;background:var(--text-muted);display:inline-block;margin-left:4px;vertical-align:middle;flex-shrink:0;"></span>
+    </a>
+    <a href="#" class="nav-item" data-tab="tab-chats">
+      <span class="nav-icon">💬</span> Chat en Vivo
+      <span class="badge" id="badge-pending" style="display:none">0</span>
+    </a>
+    <a href="#" class="nav-item" data-tab="tab-services">
+      <span class="nav-icon">🛠️</span> Servicios
+    </a>
+    <a href="#" class="nav-item" data-tab="tab-exceptions">
+      <span class="nav-icon">🚫</span> Excepciones
+    </a>
+    <a href="#" class="nav-item" data-tab="tab-prompt">
+      <span class="nav-icon">🤖</span> Configurar IA
+    </a>
+    <a href="#" class="nav-item" data-tab="tab-calendar">
+      <span class="nav-icon">📅</span> Turnos
+    </a>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="wa-status-badge" id="wa-status-sidebar">
+      <span class="status-dot disconnected"></span>
+      <span id="wa-status-text">Desconectado</span>
+    </div>
+    <a href="/logout" class="btn-logout">Cerrar sesión</a>
+  </div>
+</aside>
+
+<!-- ═══════════════════════════════════════════════════
+     MAIN CONTENT
+════════════════════════════════════════════════════ -->
+<main class="main-content">
+
+  <!-- ── TAB: WhatsApp ──────────────────────────────── -->
+  <section id="tab-whatsapp" class="tab-content active">
+    <div class="page-header">
+      <h2>Conexión WhatsApp</h2>
+      <p>Escaneá el QR desde tu WhatsApp para conectar el bot</p>
+    </div>
+
+    <div class="card wa-card">
+      <div id="wa-connected-state" style="display:none">
+        <div class="connected-indicator">
+          <div class="connected-icon">✅</div>
+          <h3>WhatsApp Conectado</h3>
+          <p>El bot está activo y respondiendo mensajes automáticamente.</p>
+        </div>
+      </div>
+
+      <div id="wa-qr-state">
+        <div class="qr-container">
+          <p class="qr-instructions">Abrí WhatsApp en tu teléfono → Dispositivos vinculados → Vincular dispositivo</p>
+          <div id="qr-wrapper">
+            <div class="qr-loading">
+              <div class="spinner"></div>
+              <p>Generando código QR...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="wa-connecting-state" style="display:none">
+        <div class="connecting-indicator">
+          <div class="spinner large"></div>
+          <p>Conectando con WhatsApp...</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── TAB: Instagram ───────────────────────────────── -->
+  <section id="tab-instagram" class="tab-content">
+    <div class="page-header">
+      <h2>Conexión Instagram</h2>
+      <p>Conectá tu cuenta de Instagram para responder DMs automáticamente</p>
+    </div>
+
+    <!-- Estado: desconectado → botón OAuth -->
+    <div id="ig-disconnected" class="card">
+      <div class="card-body" style="text-align:center; padding: 48px 24px;">
+        <div style="font-size:48px; margin-bottom:16px;">📸</div>
+        <h3 style="margin-bottom:8px;">Conectá tu Instagram</h3>
+        <p style="color:var(--text-muted); margin-bottom:32px; max-width:460px; margin-left:auto; margin-right:auto;">
+          Hacé clic para autorizar el acceso con tu cuenta de Facebook.<br>
+          Tu cuenta de Instagram debe ser <strong>Profesional</strong> (Business o Creator) y estar vinculada a una Página de Facebook.
+        </p>
+        <a href="/auth/instagram" class="btn btn-google" style="display:inline-flex;align-items:center;gap:10px;padding:12px 24px;font-size:15px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+          Conectar con Instagram
+        </a>
+        <p id="ig-connect-error" style="color:var(--danger);font-size:13px;margin-top:16px;display:none;"></p>
+      </div>
+    </div>
+
+    <!-- Estado: challenge (ya no se usa con OAuth, pero se mantiene por compatibilidad) -->
+    <div id="ig-challenge" class="card" style="display:none"></div>
+
+    <!-- Estado: conectado -->
+    <div id="ig-connected" class="card" style="display:none">
+      <div class="card-body" style="padding:32px 24px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
+          <div style="display:flex;align-items:center;gap:16px;">
+            <div style="font-size:40px;">📸</div>
+            <div>
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+                <span style="width:10px;height:10px;border-radius:50%;background:var(--success);display:inline-block;"></span>
+                <strong style="color:var(--success);">Conectado</strong>
+              </div>
+              <div id="ig-connected-username" style="color:var(--text-muted);font-size:14px;">@usuario</div>
+            </div>
+          </div>
+          <button id="btn-ig-disconnect" class="btn btn-sm btn-secondary">Desconectar</button>
+        </div>
+        <div class="alert" style="margin-top:24px;padding:14px 16px;border-radius:8px;background:rgba(255,255,255,.04);border:1px solid var(--border);">
+          <strong style="font-size:13px;">✅ El bot está activo en Instagram</strong><br>
+          <span style="color:var(--text-muted);font-size:13px;">
+            Responde DMs automáticamente. Los mensajes recibidos aparecen en <strong>Chat en Vivo</strong>.
+            El polling se ejecuta cada 12 segundos.
+          </span>
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ── TAB: Chats ─────────────────────────────────── -->
+  <section id="tab-chats" class="tab-content">
+    <div class="page-header">
+      <h2>Chat en Vivo</h2>
+      <p>Monitoreá y respondé conversaciones en tiempo real</p>
+    </div>
+
+    <div class="chat-layout">
+      <!-- Lista de chats -->
+      <div class="chat-list-panel">
+        <div class="chat-list-search">
+          <input type="text" id="chat-search" placeholder="Buscar número...">
+        </div>
+        <div id="chat-list" class="chat-list">
+          <p class="empty-state">Cargando conversaciones...</p>
+        </div>
+      </div>
+
+      <!-- Ventana de chat -->
+      <div class="chat-window-panel">
+        <div id="chat-empty-state" class="chat-empty">
+          <div class="chat-empty-icon">💬</div>
+          <p>Seleccioná una conversación para verla</p>
+        </div>
+
+        <div id="chat-window" style="display:none">
+          <div class="chat-header">
+            <div class="chat-header-info">
+              <strong id="chat-phone-display"></strong>
+              <span id="chat-status-badge" class="badge"></span>
+            </div>
+            <div class="chat-header-actions">
+              <button id="btn-toggle-pause" class="btn btn-sm btn-warning">⏸ Pausar bot</button>
+              <button id="btn-send-manual" class="btn btn-sm btn-primary">✏️ Responder</button>
+            </div>
+          </div>
+
+          <div id="chat-messages" class="chat-messages"></div>
+
+          <div id="manual-reply-area" class="manual-reply" style="display:none">
+            <textarea id="manual-message" rows="3" placeholder="Escribí tu mensaje como Lucas..."></textarea>
+            <div class="manual-reply-actions">
+              <button id="btn-send-message" class="btn btn-primary">Enviar</button>
+              <button id="btn-cancel-reply" class="btn btn-secondary">Cancelar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── TAB: Servicios ─────────────────────────────── -->
+  <section id="tab-services" class="tab-content">
+    <div class="page-header">
+      <h2>Servicios</h2>
+      <p>Cargá los servicios del taller. La IA los usa para responder precios y detalles.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-body">
+        <div class="table-wrapper">
+          <table class="data-table" id="services-table">
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Descripción</th>
+                <th>Monto</th>
+                <th>Detalles a tener en cuenta</th>
+                <th class="col-actions"></th>
+              </tr>
+            </thead>
+            <tbody id="services-tbody">
+              <tr><td colspan="5" class="empty-state">Cargando servicios...</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="table-add-row">
+          <h3>➕ Agregar servicio</h3>
+          <div class="service-form">
+            <input type="text" id="svc-name" placeholder="Nombre (ej: Cambio de aceite)">
+            <input type="text" id="svc-desc" placeholder="Descripción">
+            <input type="text" id="svc-price" placeholder="Monto (ej: $25.000)">
+            <input type="text" id="svc-notes" placeholder="Detalles a tener en cuenta">
+            <button id="btn-add-service" class="btn btn-primary">Agregar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── TAB: Excepciones ───────────────────────────── -->
+  <section id="tab-exceptions" class="tab-content">
+    <div class="page-header">
+      <h2>Excepciones</h2>
+      <p>Números que el bot debe ignorar por completo (no responde ni los registra). Ideal para tus números personales.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-body">
+        <div class="exception-form">
+          <input type="text" id="exc-phone" placeholder="Número con código de país (ej: 5493411234567)">
+          <input type="text" id="exc-note" placeholder="Nota (opcional, ej: Mi celular)">
+          <button id="btn-add-exception" class="btn btn-primary">🚫 Bloquear número</button>
+        </div>
+
+        <div class="table-wrapper" style="margin-top:24px;">
+          <table class="data-table" id="exceptions-table">
+            <thead>
+              <tr>
+                <th>Número</th>
+                <th>Nota</th>
+                <th class="col-actions"></th>
+              </tr>
+            </thead>
+            <tbody id="exceptions-tbody">
+              <tr><td colspan="3" class="empty-state">Cargando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── TAB: Configurar IA ─────────────────────────── -->
+  <section id="tab-prompt" class="tab-content">
+    <div class="page-header">
+      <h2>Configuración de la IA</h2>
+      <p>Editá el comportamiento y personalidad del bot</p>
+    </div>
+
+    <div class="card">
+      <div class="card-body">
+        <div class="form-group">
+          <label for="ai-prompt">
+            System Prompt
+            <small class="label-hint">Este texto define cómo se comporta el bot. Se aplica desde el próximo mensaje.</small>
+          </label>
+          <textarea id="ai-prompt" rows="20" placeholder="Cargando prompt..."></textarea>
+        </div>
+        <label class="switch-row" style="margin-top:16px;">
+          <input type="checkbox" id="share-prices">
+          <span>Permitir que la IA informe precios a los clientes</span>
+        </label>
+        <small class="label-hint" style="display:block;margin-top:4px;">
+          Si está desactivado, la IA nunca menciona montos: deriva los precios a Lucas.
+        </small>
+        <div class="form-actions">
+          <button id="btn-save-prompt" class="btn btn-primary">💾 Guardar cambios</button>
+          <span id="prompt-save-status" class="save-status"></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card mt-4">
+      <div class="card-body">
+        <h3>📊 Resumen diario automático</h3>
+        <p style="color:var(--text-muted);font-size:14px;margin:8px 0 20px;">
+          Todos los días a las <strong>19:00 (hora Argentina)</strong> el bot arma un resumen
+          de los chats del día y lo envía por WhatsApp al número que indiques.
+        </p>
+        <div class="form-group">
+          <label for="summary-number">Número de destino (con código de país)</label>
+          <input type="text" id="summary-number" placeholder="Ej: 5493411234567">
+        </div>
+        <label class="switch-row">
+          <input type="checkbox" id="summary-enabled">
+          <span>Activar envío automático a las 19:00</span>
+        </label>
+        <div class="form-actions" style="margin-top:20px;">
+          <button id="btn-save-summary" class="btn btn-primary">💾 Guardar</button>
+          <button id="btn-test-summary" class="btn btn-secondary">📤 Enviar resumen de prueba</button>
+          <span id="summary-save-status" class="save-status"></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card mt-4">
+      <div class="card-body">
+        <h3>🧑‍🔧 Asistente de Lucas</h3>
+        <p style="color:var(--text-muted);font-size:14px;margin:8px 0 16px;">
+          Cómo se comporta el bot cuando le escribís vos (desde el número de Lucas configurado en <strong>Turnos</strong>).
+        </p>
+        <div class="form-group">
+          <textarea id="assistant-prompt" rows="14" placeholder="Cargando prompt del asistente..."></textarea>
+        </div>
+        <div class="form-actions">
+          <button id="btn-save-assistant-prompt" class="btn btn-primary">💾 Guardar</button>
+          <span id="assistant-save-status" class="save-status"></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card mt-4">
+      <div class="card-body">
+        <h3>💡 Tips para el prompt</h3>
+        <ul class="tips-list">
+          <li>Los servicios y precios se cargan en la solapa <strong>Servicios</strong> y la IA los usa automáticamente.</li>
+          <li>Podés agregar el horario de atención y la dirección del taller.</li>
+          <li>Si querés que el bot sea más formal o informal, especificalo en el tono.</li>
+          <li>Podés indicar preguntas que el bot debe hacer SIEMPRE antes de dar un turno.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── TAB: Turnos / Calendar ─────────────────────── -->
+  <section id="tab-calendar" class="tab-content">
+    <div class="page-header">
+      <h2>Turnos del Taller</h2>
+      <p>Agenda, avisos automáticos y configuración del sistema de turnos</p>
+    </div>
+
+    <!-- ── Configuración de turnos y avisos ── -->
+    <div class="card">
+      <div class="card-body">
+        <h3>⚙️ Configuración de turnos y avisos</h3>
+        <p style="color:var(--text-muted);font-size:14px;margin:8px 0 20px;">
+          Si Google Calendar está conectado, los turnos también se espejan ahí. Si no, se usa este sistema propio.
+        </p>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="cfg-lucas-number">Número de Lucas (modo asistente)
+              <small class="label-hint">Desde este número, el bot te atiende como tu asistente personal.</small>
+            </label>
+            <input type="text" id="cfg-lucas-number" placeholder="Ej: 5493411234567">
+          </div>
+          <div class="form-group">
+            <label for="cfg-capacity">Capacidad por día (autos)</label>
+            <input type="number" id="cfg-capacity" min="1" max="50" placeholder="3">
+          </div>
+          <div class="form-group">
+            <label for="cfg-slots">Horarios de entrega
+              <small class="label-hint">Separados por coma.</small>
+            </label>
+            <input type="text" id="cfg-slots" placeholder="08:00, 08:30, 09:00">
+          </div>
+          <div class="form-group">
+            <label for="cfg-review-url">Link de reseña de Google
+              <small class="label-hint">El "Escribir una reseña" del perfil del taller.</small>
+            </label>
+            <input type="text" id="cfg-review-url" placeholder="https://g.page/r/.../review">
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-top:8px;">
+          <label>Días laborables</label>
+          <div class="workdays-row" id="workdays-row">
+            <label><input type="checkbox" id="wd-1"> Lun</label>
+            <label><input type="checkbox" id="wd-2"> Mar</label>
+            <label><input type="checkbox" id="wd-3"> Mié</label>
+            <label><input type="checkbox" id="wd-4"> Jue</label>
+            <label><input type="checkbox" id="wd-5"> Vie</label>
+            <label><input type="checkbox" id="wd-6"> Sáb</label>
+            <label><input type="checkbox" id="wd-0"> Dom</label>
+          </div>
+        </div>
+
+        <div class="toggles-grid" style="margin-top:16px;">
+          <label class="switch-row"><input type="checkbox" id="cfg-morning"><span>Resumen matutino (8:00) a Lucas</span></label>
+          <label class="switch-row"><input type="checkbox" id="cfg-checkin"><span>Check-in de servicio (10:00) con Lucas</span></label>
+          <label class="switch-row"><input type="checkbox" id="cfg-reminder"><span>Recordatorio de turno 24 hs antes al cliente</span></label>
+          <label class="switch-row"><input type="checkbox" id="cfg-review"><span>Pedido de reseña post-servicio</span></label>
+        </div>
+
+        <div class="form-actions" style="margin-top:20px;">
+          <button id="btn-save-turnos" class="btn btn-primary">💾 Guardar configuración</button>
+          <button id="btn-test-morning" class="btn btn-secondary">📤 Probar resumen matutino</button>
+          <button id="btn-test-reminders" class="btn btn-secondary">📤 Probar recordatorios</button>
+          <span id="turnos-save-status" class="save-status"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Tabla de turnos ── -->
+    <div class="card mt-4">
+      <div class="card-body">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+          <h3 style="margin:0;">📋 Turnos agendados</h3>
+          <button id="btn-refresh-appointments" class="btn btn-sm btn-secondary">🔄 Actualizar</button>
+        </div>
+        <div class="table-wrapper">
+          <table class="data-table" id="appointments-table">
+            <thead>
+              <tr>
+                <th>Día</th><th>Hora</th><th>Cliente</th><th>Vehículo</th>
+                <th>Servicio</th><th>Estado</th><th>Nota</th><th class="col-actions"></th>
+              </tr>
+            </thead>
+            <tbody id="appointments-tbody">
+              <tr><td colspan="8" class="empty-state">Cargando turnos...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Google Calendar (opcional) ── -->
+    <div class="card mt-4">
+      <div class="card-body">
+        <h3>📅 Google Calendar (opcional)</h3>
+        <p style="color:var(--text-muted);font-size:14px;margin:8px 0 16px;">
+          Conectalo para que los turnos también aparezcan en tu calendario de Google.
+        </p>
+
+    <!-- Estado: no configurado (falta GOOGLE_CLIENT_ID en .env) -->
+    <div id="calendar-no-credentials" class="card" style="display:none">
+      <div class="card-body" style="text-align:center; padding: 48px 24px;">
+        <div style="font-size:48px; margin-bottom:16px;">⚙️</div>
+        <h3 style="margin-bottom:8px;">Configurá las credenciales de Google</h3>
+        <p style="color:var(--text-muted); margin-bottom:24px; max-width:500px; margin-left:auto; margin-right:auto;">
+          Agregá <code style="background:rgba(0,0,0,.3);padding:2px 6px;border-radius:4px;">GOOGLE_CLIENT_ID</code>
+          y <code style="background:rgba(0,0,0,.3);padding:2px 6px;border-radius:4px;">GOOGLE_CLIENT_SECRET</code>
+          en el archivo <code style="background:rgba(0,0,0,.3);padding:2px 6px;border-radius:4px;">.env</code> del servidor.
+        </p>
+      </div>
+    </div>
+
+    <!-- Estado: credenciales OK pero no autenticado → botón Login -->
+    <div id="calendar-not-connected" class="card" style="display:none">
+      <div class="card-body" style="text-align:center; padding: 48px 24px;">
+        <div style="font-size:48px; margin-bottom:16px;">📅</div>
+        <h3 style="margin-bottom:8px;">Conectá tu Google Calendar</h3>
+        <p style="color:var(--text-muted); margin-bottom:32px;">
+          Hacé clic para autorizar el acceso a tu Google Calendar.<br>
+          Solo necesitás hacerlo una vez.
+        </p>
+        <a href="/auth/google" class="btn btn-google">
+          <svg width="20" height="20" viewBox="0 0 48 48" style="flex-shrink:0">
+            <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+            <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+            <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+            <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.36-8.16 2.36-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+          </svg>
+          Iniciar sesión con Google
+        </a>
+      </div>
+    </div>
+
+    <!-- Estado: conectado → lista de eventos -->
+    <div id="calendar-connected" style="display:none">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+        <span style="color:var(--success); font-size:14px; display:flex; align-items:center; gap:6px;">
+          <span style="width:8px;height:8px;border-radius:50%;background:var(--success);display:inline-block;"></span>
+          Google Calendar conectado
+        </span>
+        <button id="btn-disconnect-google" class="btn btn-sm btn-secondary">Desconectar</button>
+      </div>
+      <div id="calendar-events" class="events-grid">
+        <p class="empty-state">Cargando turnos...</p>
+      </div>
+    </div>
+
+      </div>
+    </div>
+
+  </section>
+
+</main>
+
+<!-- ═══════════════════════════════════════════════════
+     TOAST NOTIFICATIONS
+════════════════════════════════════════════════════ -->
+<div id="toast-container" class="toast-container"></div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="/js/dashboard.js"></script>
+</body>
+</html>
