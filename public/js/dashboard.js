@@ -29,6 +29,7 @@ function refreshView(tabId) {
   }
   if (tabId === 'tab-calendar')  { loadTurnos(); loadCalendar(); }
   if (tabId === 'tab-instagram') loadInstagramStatus();
+  if (tabId === 'tab-home')      loadHome();
 }
 
 // ─── Estado local ───────────────────────────────────
@@ -92,6 +93,95 @@ function activateTab(tabId) {
   if (tabId === 'tab-instagram')  loadInstagramStatus();
   if (tabId === 'tab-services')   loadServices();
   if (tabId === 'tab-exceptions') loadExceptions();
+  if (tabId === 'tab-home')       loadHome();
+}
+
+// Navegación desde enlaces dentro del contenido (no del sidebar): botones y
+// tarjetas con [data-tab]. Sincroniza el resaltado del menú lateral.
+document.querySelectorAll('[data-tab]:not(.nav-item)').forEach(el => {
+  el.addEventListener('click', e => {
+    e.preventDefault();
+    const tab = el.dataset.tab;
+    activateTab(tab);
+    document.querySelectorAll('.sidebar-nav .nav-item').forEach(n =>
+      n.classList.toggle('active', n.dataset.tab === tab));
+  });
+});
+
+// ─── INICIO (panel diario) ───────────────────────────
+function addDaysStr(dateStr, n) {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const dt = new Date(Date.UTC(y, m - 1, d));
+  dt.setUTCDate(dt.getUTCDate() + n);
+  return dt.toISOString().slice(0, 10);
+}
+
+const HOME_INACTIVE = ['cancelled', 'no_show'];
+
+async function loadHome() {
+  // Fecha legible
+  const dateEl = document.getElementById('home-date');
+  if (dateEl) {
+    dateEl.textContent = new Date().toLocaleDateString('es-AR',
+      { weekday: 'long', day: 'numeric', month: 'long' });
+  }
+
+  const res = await apiFetch('/api/appointments');
+  const listEl = document.getElementById('home-today-list');
+  if (!res) { if (listEl) listEl.innerHTML = '<p class="empty-state">Error al cargar</p>'; return; }
+
+  const { appointments = [], today } = await res.json();
+  const tomorrow = addDaysStr(today, 1);
+  const weekEnd  = addDaysStr(today, 6);
+  const active = appointments.filter(a => !HOME_INACTIVE.includes(a.status));
+
+  const todays = active.filter(a => a.date === today).sort((x, y) => (x.time || '').localeCompare(y.time || ''));
+  const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+  set('stat-today',    todays.length);
+  set('stat-tomorrow', active.filter(a => a.date === tomorrow).length);
+  set('stat-week',     active.filter(a => a.date >= today && a.date <= weekEnd).length);
+  set('stat-pending',  active.filter(a => a.status === 'finished').length);
+
+  if (!listEl) return;
+  if (!todays.length) {
+    listEl.innerHTML = '<p class="empty-state">No hay turnos para hoy.</p>';
+    return;
+  }
+  listEl.innerHTML = todays.map(a => `
+    <div class="home-appt">
+      <div class="home-appt-time">${a.time || '—'}</div>
+      <div class="home-appt-main">
+        <strong>${escapeHtml(a.client_name || formatPhone(a.client_phone))}</strong>
+        <span>${escapeHtml(a.car_info || '')}${a.service ? ' · ' + escapeHtml(a.service) : ''}</span>
+      </div>
+      <span class="badge ${homeStatusClass(a.status)}">${homeStatusLabel(a.status)}</span>
+    </div>`).join('');
+}
+
+function homeStatusLabel(s) {
+  return ({ scheduled:'Agendado', attended:'Vino', in_progress:'En proceso',
+    finished:'Listo', retrieved:'Retirado' })[s] || s;
+}
+function homeStatusClass(s) {
+  if (s === 'finished' || s === 'retrieved') return 'badge-active';
+  if (s === 'in_progress') return 'badge-paused';
+  return '';
+}
+
+// Refleja el estado de WhatsApp en el panel de inicio.
+function updateHomeStatus(status) {
+  const dot = document.getElementById('home-dot');
+  const title = document.getElementById('home-status-title');
+  const sub = document.getElementById('home-status-sub');
+  const link = document.getElementById('home-connect-link');
+  if (!dot) return;
+  dot.className = `status-dot ${status}`;
+  const connected = status === 'connected';
+  if (title) title.textContent = connected ? 'WhatsApp conectado' : 'WhatsApp desconectado';
+  if (sub) sub.textContent = connected
+    ? 'El bot está atendiendo y tomando turnos automáticamente.'
+    : 'Conectá tu WhatsApp para empezar a tomar turnos.';
+  if (link) link.style.display = connected ? 'none' : '';
 }
 
 // ─── WHATSAPP STATUS ─────────────────────────────────
@@ -108,6 +198,8 @@ function updateWAStatus({ status, qr }) {
   const labels = { connected: 'Conectado', disconnected: 'Desconectado', qr: 'Esperando QR', connecting: 'Conectando...' };
   if (dot)  { dot.className = `status-dot ${status}`; }
   if (text) { text.textContent = labels[status] || status; }
+
+  updateHomeStatus(status);
 
   const connectedDiv  = document.getElementById('wa-connected-state');
   const qrDiv         = document.getElementById('wa-qr-state');
@@ -851,3 +943,7 @@ function timeAgo(ts) {
   if (h < 24) return `${h}h`;
   return `${Math.floor(h / 24)}d`;
 }
+
+// ─── INIT ────────────────────────────────────────────
+// La pestaña Inicio es la activa por defecto: cargar su contenido al entrar.
+if (document.getElementById('tab-home')?.classList.contains('active')) loadHome();

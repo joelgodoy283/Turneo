@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LC Performance — Dashboard</title>
+  <title>Turneo — Panel</title>
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
@@ -13,11 +13,18 @@
 ════════════════════════════════════════════════════ -->
 <aside class="sidebar">
   <div class="sidebar-header">
-    <img src="/img/logo.jpg" alt="LC Performance" class="sidebar-logo-img">
+    <span class="brand-mark">📅</span>
+    <div class="brand-text">
+      <h2>Turneo</h2>
+      <small>Turnos por WhatsApp</small>
+    </div>
   </div>
 
   <nav class="sidebar-nav">
-    <a href="#" class="nav-item active" data-tab="tab-whatsapp">
+    <a href="#" class="nav-item active" data-tab="tab-home">
+      <span class="nav-icon">🏠</span> Inicio
+    </a>
+    <a href="#" class="nav-item" data-tab="tab-whatsapp">
       <span class="nav-icon">📱</span> Conexión WhatsApp
     </a>
     <a href="#" class="nav-item" data-tab="tab-instagram">
@@ -56,8 +63,55 @@
 ════════════════════════════════════════════════════ -->
 <main class="main-content">
 
+  <!-- ── TAB: Inicio (panel diario) ─────────────────── -->
+  <section id="tab-home" class="tab-content active">
+    <div class="page-header">
+      <h2>Inicio</h2>
+      <p id="home-date">Resumen del día</p>
+    </div>
+
+    <!-- Estado del bot -->
+    <div class="home-status" id="home-status">
+      <span class="status-dot disconnected" id="home-dot"></span>
+      <div>
+        <strong id="home-status-title">WhatsApp desconectado</strong>
+        <span id="home-status-sub">Conectá tu WhatsApp para empezar a tomar turnos.</span>
+      </div>
+      <a href="#" class="btn btn-sm btn-secondary" data-tab="tab-whatsapp" id="home-connect-link">Conectar</a>
+    </div>
+
+    <!-- Métricas rápidas -->
+    <div class="stat-grid">
+      <div class="stat-card"><div class="stat-num" id="stat-today">—</div><div class="stat-label">Turnos hoy</div></div>
+      <div class="stat-card"><div class="stat-num" id="stat-tomorrow">—</div><div class="stat-label">Turnos mañana</div></div>
+      <div class="stat-card"><div class="stat-num" id="stat-week">—</div><div class="stat-label">Próximos 7 días</div></div>
+      <div class="stat-card"><div class="stat-num" id="stat-pending">—</div><div class="stat-label">Para retirar</div></div>
+    </div>
+
+    <!-- Turnos de hoy -->
+    <div class="card mt-4">
+      <div class="card-body">
+        <div class="home-section-head">
+          <h3>📋 Turnos de hoy</h3>
+          <a href="#" class="btn btn-sm btn-secondary" data-tab="tab-calendar">Ver agenda completa</a>
+        </div>
+        <div id="home-today-list" class="home-appt-list">
+          <p class="empty-state">Cargando…</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Accesos rápidos -->
+    <div class="quick-grid mt-4">
+      <a href="#" class="quick-card" data-tab="tab-chats"><span>💬</span> Chat en vivo</a>
+      <a href="#" class="quick-card" data-tab="tab-calendar"><span>📅</span> Turnos y agenda</a>
+      <a href="#" class="quick-card" data-tab="tab-services"><span>🛠️</span> Servicios</a>
+      <a href="#" class="quick-card" data-tab="tab-prompt"><span>🤖</span> Configurar IA</a>
+    </div>
+  </section>
+
   <!-- ── TAB: WhatsApp ──────────────────────────────── -->
-  <section id="tab-whatsapp" class="tab-content active">
+  <section id="tab-whatsapp" class="tab-content">
     <div class="page-header">
       <h2>Conexión WhatsApp</h2>
       <p>Escaneá el QR desde tu WhatsApp para conectar el bot</p>

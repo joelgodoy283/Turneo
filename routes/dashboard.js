@@ -29,9 +29,12 @@ router.get('/logout', (req, res) => {
   res.redirect('/login');
 });
 
-// ─── Dashboard principal ────────────────────────────────────────────────────
-router.get('/', requireAuth, (req, res) => {
-  res.render('dashboard');
+// ─── Raíz: landing del producto (logueado → panel) ─────────────────────────
+// Sin sesión → landing pública de Turneo (lleva al panel). Con sesión → panel.
+// Mantener "/" para ambos evita romper los redirects/OAuth que vuelven a "/".
+router.get('/', (req, res) => {
+  if (req.session?.authenticated) return res.render('dashboard');
+  res.render('landing');
 });
 
 module.exports = router;
