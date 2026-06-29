@@ -5,7 +5,7 @@ const { processMessage } = require('../ai/openrouter');
 const GRAPH = 'https://graph.facebook.com/v20.0';
 
 const HUMAN_TRIGGERS = [
-  'hablar con lucas', 'quiero un humano', 'humano', 'persona real',
+  'hablar con una persona', 'quiero un humano', 'humano', 'persona real',
   'agente humano', 'quiero hablar con alguien', 'hablar con alguien',
 ];
 
@@ -143,7 +143,7 @@ async function handleWebhookMessage(senderId, text) {
   const lower = text.toLowerCase().trim();
   if (HUMAN_TRIGGERS.some(t => lower.includes(t))) {
     pauseContact(igPhone);
-    const ack = 'Entendido, le aviso a Lucas para que te atienda personalmente. Un momento 🙏';
+    const ack = 'Entendido, le aviso al dueño para que te atienda personalmente. Un momento 🙏';
     await sendInstagramMessage(senderId, ack);
     saveMessage(igPhone, 'out', ack);
     global.io?.emit('chat:new_message', { phone: igPhone, direction: 'out', content: ack, timestamp: new Date().toISOString() });

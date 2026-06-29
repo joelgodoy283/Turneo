@@ -10,7 +10,7 @@
  */
 const cron = require('node-cron');
 const {
-  getConfig, getAppointmentsForReview, getReviewFallbackPending, updateAppointment,
+  getConfig, getBusinessName, getAppointmentsForReview, getReviewFallbackPending, updateAppointment,
 } = require('../database/db');
 const local = require('../calendar/local-calendar');
 
@@ -19,7 +19,7 @@ const FALLBACK_HOURS = 5;
 
 function googleReviewText(appt, url) {
   return (
-    `🙌 ¡Gracias por elegir *LC Performance*${appt.client_name ? ', ' + appt.client_name : ''}! ` +
+    `🙌 ¡Gracias por elegir *${getBusinessName()}*${appt.client_name ? ', ' + appt.client_name : ''}! ` +
     `Esperamos que tu ${appt.car_info || 'vehículo'} haya quedado perfecto.\n` +
     `¿Nos dejarías una reseña en Google? Nos ayuda muchísimo a seguir creciendo 🙏\n${url}`
   );
@@ -28,7 +28,7 @@ function googleReviewText(appt, url) {
 function ratingText(appt) {
   return (
     `Para seguir mejorando${appt.client_name ? ', ' + appt.client_name : ''}: del *1 al 10*, ` +
-    `¿cómo calificarías la atención y el servicio que recibiste en *LC Performance*? 🙏`
+    `¿cómo calificarías la atención y el servicio que recibiste en *${getBusinessName()}*? 🙏`
   );
 }
 

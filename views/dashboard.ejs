@@ -242,7 +242,7 @@
           <div id="chat-messages" class="chat-messages"></div>
 
           <div id="manual-reply-area" class="manual-reply" style="display:none">
-            <textarea id="manual-message" rows="3" placeholder="Escribí tu mensaje como Lucas..."></textarea>
+            <textarea id="manual-message" rows="3" placeholder="Escribí tu mensaje como el dueño..."></textarea>
             <div class="manual-reply-actions">
               <button id="btn-send-message" class="btn btn-primary">Enviar</button>
               <button id="btn-cancel-reply" class="btn btn-secondary">Cancelar</button>
@@ -257,7 +257,7 @@
   <section id="tab-services" class="tab-content">
     <div class="page-header">
       <h2>Servicios</h2>
-      <p>Cargá los servicios del taller. La IA los usa para responder precios y detalles.</p>
+      <p>Cargá los servicios del negocio. La IA los usa para responder precios y detalles.</p>
     </div>
 
     <div class="card">
@@ -347,7 +347,7 @@
           <span>Permitir que la IA informe precios a los clientes</span>
         </label>
         <small class="label-hint" style="display:block;margin-top:4px;">
-          Si está desactivado, la IA nunca menciona montos: deriva los precios a Lucas.
+          Si está desactivado, la IA nunca menciona montos: deriva los precios al dueño.
         </small>
         <div class="form-actions">
           <button id="btn-save-prompt" class="btn btn-primary">💾 Guardar cambios</button>
@@ -381,9 +381,9 @@
 
     <div class="card mt-4">
       <div class="card-body">
-        <h3>🧑‍🔧 Asistente de Lucas</h3>
+        <h3>🧑‍🔧 Asistente del dueño</h3>
         <p style="color:var(--text-muted);font-size:14px;margin:8px 0 16px;">
-          Cómo se comporta el bot cuando le escribís vos (desde el número de Lucas configurado en <strong>Turnos</strong>).
+          Cómo se comporta el bot cuando le escribís vos (desde el número del dueño configurado en <strong>Turnos</strong>).
         </p>
         <div class="form-group">
           <textarea id="assistant-prompt" rows="14" placeholder="Cargando prompt del asistente..."></textarea>
@@ -400,7 +400,7 @@
         <h3>💡 Tips para el prompt</h3>
         <ul class="tips-list">
           <li>Los servicios y precios se cargan en la solapa <strong>Servicios</strong> y la IA los usa automáticamente.</li>
-          <li>Podés agregar el horario de atención y la dirección del taller.</li>
+          <li>Podés agregar el horario de atención y la dirección del negocio.</li>
           <li>Si querés que el bot sea más formal o informal, especificalo en el tono.</li>
           <li>Podés indicar preguntas que el bot debe hacer SIEMPRE antes de dar un turno.</li>
         </ul>
@@ -411,7 +411,7 @@
   <!-- ── TAB: Turnos / Calendar ─────────────────────── -->
   <section id="tab-calendar" class="tab-content">
     <div class="page-header">
-      <h2>Turnos del Taller</h2>
+      <h2>Turnos del Negocio</h2>
       <p>Agenda, avisos automáticos y configuración del sistema de turnos</p>
     </div>
 
@@ -425,10 +425,10 @@
 
         <div class="form-grid">
           <div class="form-group">
-            <label for="cfg-lucas-number">Número de Lucas (modo asistente)
+            <label for="cfg-owner-number">Número del dueño (modo asistente)
               <small class="label-hint">Desde este número, el bot te atiende como tu asistente personal.</small>
             </label>
-            <input type="text" id="cfg-lucas-number" placeholder="Ej: 5493411234567">
+            <input type="text" id="cfg-owner-number" placeholder="Ej: 5493411234567">
           </div>
           <div class="form-group">
             <label for="cfg-capacity">Capacidad por día (autos)</label>
@@ -442,7 +442,7 @@
           </div>
           <div class="form-group">
             <label for="cfg-review-url">Link de reseña de Google
-              <small class="label-hint">El "Escribir una reseña" del perfil del taller.</small>
+              <small class="label-hint">El "Escribir una reseña" del perfil del negocio.</small>
             </label>
             <input type="text" id="cfg-review-url" placeholder="https://g.page/r/.../review">
           </div>
@@ -462,8 +462,8 @@
         </div>
 
         <div class="toggles-grid" style="margin-top:16px;">
-          <label class="switch-row"><input type="checkbox" id="cfg-morning"><span>Resumen matutino (8:00) a Lucas</span></label>
-          <label class="switch-row"><input type="checkbox" id="cfg-checkin"><span>Check-in de servicio (10:00) con Lucas</span></label>
+          <label class="switch-row"><input type="checkbox" id="cfg-morning"><span>Resumen matutino (8:00) al dueño</span></label>
+          <label class="switch-row"><input type="checkbox" id="cfg-checkin"><span>Check-in de servicio (10:00) con el dueño</span></label>
           <label class="switch-row"><input type="checkbox" id="cfg-reminder"><span>Recordatorio de turno 24 hs antes al cliente</span></label>
           <label class="switch-row"><input type="checkbox" id="cfg-review"><span>Pedido de reseña post-servicio</span></label>
         </div>

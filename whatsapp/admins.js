@@ -9,7 +9,7 @@
  * Fuentes de números admin (se unifican y deduplican):
  *   1. ENV  ADMIN_WHATSAPP_NUMBERS  → lista separada por comas.
  *   2. CONFIG `admin_numbers`        → editable desde el dashboard (coma).
- *   3. CONFIG `lucas_number`         → compatibilidad: el dueño principal.
+ *   3. CONFIG `owner_number`         → el dueño/encargado principal.
  *
  * Todos los números se normalizan a solo dígitos (con código de país) para
  * comparar de forma robusta sin importar el formato (+54, espacios, @jid, etc.).
@@ -26,9 +26,9 @@ function adminNumbers() {
     .split(',')
     .map((s) => normalizePhone(s))
     .filter(Boolean);
-  const lucas = normalizePhone(getConfig('lucas_number') || '');
+  const owner = normalizePhone(getConfig('owner_number') || '');
   const all = [...fromEnv, ...fromConfig];
-  if (lucas) all.push(lucas);
+  if (owner) all.push(owner);
   return new Set(all);
 }
 

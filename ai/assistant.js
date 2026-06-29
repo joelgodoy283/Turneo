@@ -1,13 +1,13 @@
 /**
- * ai/assistant.js — Modo asistente de Lucas.
+ * ai/assistant.js — Modo asistente del dueño.
  *
- * Cuando un mensaje llega del número de Lucas (config `lucas_number`), en vez de
+ * Cuando un mensaje llega del número del dueño (config `owner_number`), en vez de
  * atenderlo como cliente se lo procesa acá: prompt y herramientas distintas para
  * gestionar la agenda (consultar/crear/cancelar/reagendar turnos, ver contactos
  * del día, marcar cuándo queda listo un auto).
  */
 const {
-  getConfig, setConfig, getConversationState, saveConversationState,
+  getConfig, setConfig, getBusinessName, getConversationState, saveConversationState,
   getAppointmentById, getAppointmentsBetween, getAllAppointmentsBetween, getMessagesBetween,
   updateAppointment, normalizePhone, searchAppointments,
   addBlockedSlot, removeBlocksOnDate, getBlockedSlots,
@@ -23,7 +23,7 @@ const MAX_HISTORY_MESSAGES = 20;
 // ─── Prompt ──────────────────────────────────────────────────────────────────
 
 function buildAssistantPrompt() {
-  const base = getConfig('assistant_prompt') || 'Sos el asistente personal de Lucas, dueño de LC Performance.';
+  const base = getConfig('assistant_prompt') || 'Sos el asistente personal del dueño/encargado del negocio.';
   const { texto, iso } = currentDateLine();
   return `${base}
 
@@ -35,7 +35,7 @@ ADEMÁS DE LA AGENDA, PODÉS (tenés herramientas para esto):
 - Armar el resumen del día: turnos + quién escribió (day_summary).
 - Poner a un cliente en modo MANUAL (lo atendés vos, el bot no le responde) o devolverlo a modo BOT (set_contact_bot_mode).
 - Cambiar de forma simple la agenda: capacidad por día, horarios ofrecidos, días laborables (set_business_hours).
-Cuando una acción afecta a un cliente real o cambia la configuración, confirmá con Lucas antes.
+Cuando una acción afecta a un cliente real o cambia la configuración, confirmá con el dueño antes.
 
 FECHA Y HORA ACTUAL:
 Hoy es ${texto}. En ISO: ${iso}. Usá SIEMPRE esta fecha para interpretar "hoy", "mañana", "el viernes", etc., y pasá las fechas a las herramientas en formato YYYY-MM-DD.`;
@@ -63,7 +63,7 @@ const ASSISTANT_TOOLS = [
     type: 'function',
     function: {
       name: 'list_day_contacts',
-      description: 'Lista los contactos/clientes que escribieron al taller por WhatsApp en un día, con su conversación, para que puedas resumirle a Lucas quiénes fueron y qué pidieron. Si no se pasa fecha, usa hoy.',
+      description: 'Lista los contactos/clientes que escribieron al negocio por WhatsApp en un día, con su conversación, para que puedas resumirle al dueño quiénes fueron y qué pidieron. Si no se pasa fecha, usa hoy.',
       parameters: {
         type: 'object',
         properties: {
@@ -77,7 +77,7 @@ const ASSISTANT_TOOLS = [
     type: 'function',
     function: {
       name: 'cancel_appointment',
-      description: 'Cancela un turno por su id. Por defecto le avisa al cliente y le ofrece otra fecha con prioridad. Confirmá con Lucas antes de usarla.',
+      description: 'Cancela un turno por su id. Por defecto le avisa al cliente y le ofrece otra fecha con prioridad. Confirmá con el dueño antes de usarla.',
       parameters: {
         type: 'object',
         properties: {
@@ -93,7 +93,7 @@ const ASSISTANT_TOOLS = [
     type: 'function',
     function: {
       name: 'create_appointment_manual',
-      description: 'Crea un turno manualmente (cuando Lucas coordina por otro medio). Necesita el teléfono del cliente.',
+      description: 'Crea un turno manualmente (cuando el dueño coordina por otro medio). Necesita el teléfono del cliente.',
       parameters: {
         type: 'object',
         properties: {
@@ -144,7 +144,7 @@ const ASSISTANT_TOOLS = [
     type: 'function',
     function: {
       name: 'set_attendance',
-      description: 'Marca si un cliente asistió o no a su turno (lo usás cuando Lucas te confirma quién vino). Si no asistió, libera el cupo.',
+      description: 'Marca si un cliente asistió o no a su turno (lo usás cuando el dueño te confirma quién vino). Si no asistió, libera el cupo.',
       parameters: {
         type: 'object',
         properties: {
@@ -159,7 +159,7 @@ const ASSISTANT_TOOLS = [
     type: 'function',
     function: {
       name: 'set_estimated_finish',
-      description: 'Carga la hora estimada en que un vehículo va a estar listo HOY (la que dice Lucas). A esa hora se le va a preguntar a Lucas si terminó.',
+      description: 'Carga la hora estimada en que un vehículo va a estar listo HOY (la que dice el dueño). A esa hora se le va a preguntar al dueño si terminó.',
       parameters: {
         type: 'object',
         properties: {
@@ -174,7 +174,7 @@ const ASSISTANT_TOOLS = [
     type: 'function',
     function: {
       name: 'mark_finished',
-      description: 'Marca un vehículo como TERMINADO cuando Lucas lo confirma. Le avisa automáticamente al cliente que puede pasar a retirarlo. Usala SIEMPRE que Lucas confirme que terminó un auto.',
+      description: 'Marca un vehículo como TERMINADO cuando el dueño lo confirma. Le avisa automáticamente al cliente que puede pasar a retirarlo. Usala SIEMPRE que el dueño confirme que terminó un auto.',
       parameters: {
         type: 'object',
         properties: {
@@ -188,7 +188,7 @@ const ASSISTANT_TOOLS = [
     type: 'function',
     function: {
       name: 'offer_reschedule_to_client',
-      description: 'Le escribe al cliente ofreciéndole los próximos cupos con prioridad para reagendar (ej: tras una inasistencia, si Lucas te lo pide).',
+      description: 'Le escribe al cliente ofreciéndole los próximos cupos con prioridad para reagendar (ej: tras una inasistencia, si el dueño te lo pide).',
       parameters: {
         type: 'object',
         properties: {
@@ -203,7 +203,7 @@ const ASSISTANT_TOOLS = [
     type: 'function',
     function: {
       name: 'check_free_slots',
-      description: 'Muestra los horarios LIBRES de un día puntual, o los próximos días con cupo si no se pasa fecha. Usala cuando Lucas pregunta "qué horarios tengo libres mañana" o "cuándo tengo lugar".',
+      description: 'Muestra los horarios LIBRES de un día puntual, o los próximos días con cupo si no se pasa fecha. Usala cuando el dueño pregunta "qué horarios tengo libres mañana" o "cuándo tengo lugar".',
       parameters: {
         type: 'object',
         properties: {
@@ -218,7 +218,7 @@ const ASSISTANT_TOOLS = [
     type: 'function',
     function: {
       name: 'search_appointments',
-      description: 'Busca turnos por nombre del cliente, teléfono, patente/vehículo o servicio. Usala cuando Lucas dice "buscá el turno de Pedro", "el turno del Gol blanco", "turnos de tal patente", etc.',
+      description: 'Busca turnos por nombre del cliente, teléfono, patente/vehículo o servicio. Usala cuando el dueño dice "buscá el turno de Pedro", "el turno del Gol blanco", "turnos de tal patente", etc.',
       parameters: {
         type: 'object',
         properties: {
@@ -294,7 +294,7 @@ const ASSISTANT_TOOLS = [
     type: 'function',
     function: {
       name: 'day_summary',
-      description: 'Arma el resumen del día: turnos de hoy y qué clientes escribieron. Usala cuando Lucas pide "pasame el resumen del día" o "cómo viene hoy".',
+      description: 'Arma el resumen del día: turnos de hoy y qué clientes escribieron. Usala cuando el dueño pide "pasame el resumen del día" o "cómo viene hoy".',
       parameters: {
         type: 'object',
         properties: {
@@ -308,13 +308,13 @@ const ASSISTANT_TOOLS = [
     type: 'function',
     function: {
       name: 'set_contact_bot_mode',
-      description: 'Pone a un cliente en modo MANUAL (el bot deja de responderle, lo atiende Lucas) o lo devuelve a modo BOT (el bot vuelve a atenderlo). Identificá al cliente por teléfono o por nombre. Usala para "poné el bot en modo manual para este cliente" / "reactivá el bot para tal cliente".',
+      description: 'Pone a un cliente en modo MANUAL (el bot deja de responderle, lo atiendel dueño) o lo devuelve a modo BOT (el bot vuelve a atenderlo). Identificá al cliente por teléfono o por nombre. Usala para "poné el bot en modo manual para este cliente" / "reactivá el bot para tal cliente".',
       parameters: {
         type: 'object',
         properties: {
           client_phone: { type: 'string', description: 'Teléfono del cliente (con código de país). Preferí esto si lo tenés.' },
           client_name: { type: 'string', description: 'Nombre del cliente si no tenés el teléfono (se busca en los turnos).' },
-          mode: { type: 'string', enum: ['manual', 'bot'], description: 'manual = lo atiende Lucas; bot = lo atiende el asistente.' },
+          mode: { type: 'string', enum: ['manual', 'bot'], description: 'manual = lo atiendel dueño; bot = lo atiende el asistente.' },
         },
         required: ['mode'],
       },
@@ -324,7 +324,7 @@ const ASSISTANT_TOOLS = [
     type: 'function',
     function: {
       name: 'set_business_hours',
-      description: 'Cambia de forma simple la configuración de la agenda: capacidad de turnos por día, horarios de entrega ofrecidos y/o días laborables. Confirmá con Lucas antes de cambiar.',
+      description: 'Cambia de forma simple la configuración de la agenda: capacidad de turnos por día, horarios de entrega ofrecidos y/o días laborables. Confirmá con el dueño antes de cambiar.',
       parameters: {
         type: 'object',
         properties: {
@@ -382,32 +382,34 @@ function priorityOfferText(appt, reason) {
   const options = local.nextAvailableSlots(3);
   const reasonTxt = reason ? ` (${reason})` : '';
   return (
-    `Hola${appt.client_name ? ' ' + appt.client_name : ''}, te escribimos de *LC Performance*.${reasonTxt ? reasonTxt : ''} ` +
+    `Hola${appt.client_name ? ' ' + appt.client_name : ''}, te escribimos de *${getBusinessName()}*.${reasonTxt ? reasonTxt : ''} ` +
     `Queremos reagendar tu turno y te damos *prioridad*. Tenemos lugar:\n${slotOptionsText(options)}\n\n` +
     `¿Cuál te queda cómodo? Respondé y te lo agendo.`
   );
 }
 
-/** Mensaje al cliente avisando que el vehículo está listo para retirar. */
+/** Mensaje al cliente avisando que su trabajo/servicio está listo para retirar. */
 function pickupText(appt) {
+  const address = (getConfig('business_address') || '').trim();
+  const addressLine = address ? `Podés pasar a retirarlo por ${address} ` : 'Ya podés pasar a retirarlo ';
   return (
-    `✅ ¡Hola${appt.client_name ? ' ' + appt.client_name : ''}! Te escribimos de *LC Performance*: ` +
-    `tu ${appt.car_info || 'vehículo'} ya está listo. Podés pasar a retirarlo por Bv. Seguí 2122 (Rosario) ` +
-    `en nuestro horario de atención. ¡Gracias por confiar en nosotros! 🔧`
+    `✅ ¡Hola${appt.client_name ? ' ' + appt.client_name : ''}! Te escribimos de *${getBusinessName()}*: ` +
+    `tu ${appt.car_info || 'pedido'} ya está listo. ${addressLine}` +
+    `en nuestro horario de atención. ¡Gracias por confiar en nosotros! 🙌`
   );
 }
 
 /**
- * Envía un mensaje proactivo a Lucas y lo deja en el historial de su asistente,
+ * Envía un mensaje proactivo al dueño y lo deja en el historial de su asistente,
  * para que cuando responda, el modelo tenga el contexto de lo que se le preguntó.
  */
-async function sendToLucasAndRemember(text) {
-  const num = normalizePhone(getConfig('lucas_number'));
+async function sendToOwnerAndRemember(text) {
+  const num = normalizePhone(getConfig('owner_number'));
   if (!num) return false;
   const jid = `${num}@s.whatsapp.net`;
   const { sendMessage, getConnectionState } = require('../whatsapp/baileys');
   if (getConnectionState().status !== 'connected') {
-    console.warn('[ASSISTANT] WhatsApp no conectado; no se pudo escribir a Lucas.');
+    console.warn('[ASSISTANT] WhatsApp no conectado; no se pudo escribir al dueño.');
     return false;
   }
   try {
@@ -417,7 +419,7 @@ async function sendToLucasAndRemember(text) {
     saveConversationState(jid, history, state.step, state.car_info, false);
     return true;
   } catch (err) {
-    console.error('[ASSISTANT] Error escribiendo a Lucas:', err.message);
+    console.error('[ASSISTANT] Error escribiendo al dueño:', err.message);
     return false;
   }
 }
@@ -466,7 +468,7 @@ async function executeAssistantTool(toolName, args) {
         const options = local.nextAvailableSlots(3);
         const reasonTxt = args.reason ? ` (${args.reason})` : '';
         const msg =
-          `Hola${appt.client_name ? ' ' + appt.client_name : ''}, te escribimos de *LC Performance*. ` +
+          `Hola${appt.client_name ? ' ' + appt.client_name : ''}, te escribimos de *${getBusinessName()}*. ` +
           `Tuvimos que cancelar tu turno del ${prettyDate(appt.date)}${appt.time ? ' a las ' + appt.time + ' hs' : ''}${reasonTxt}. ` +
           `Disculpá las molestias 🙏\n\nTe damos *prioridad* para reagendarlo. Tenemos lugar:\n${slotOptionsText(options)}\n\n` +
           `¿Cuál te queda cómodo? Respondé y te lo agendo.`;
@@ -483,7 +485,7 @@ async function executeAssistantTool(toolName, args) {
         client_name: args.client_name, client_phone: args.client_phone,
         car_info: args.car_info, service: args.service,
         date: args.date, start_time: args.start_time,
-        notifyOwner: false, // lo está creando el propio Lucas
+        notifyOwner: false, // lo está creando el propio el dueño
       });
       return JSON.stringify(res);
     }
@@ -498,7 +500,7 @@ async function executeAssistantTool(toolName, args) {
       if (args.notify_client !== false) {
         const a = res.appointment;
         const msg =
-          `Hola${a.client_name ? ' ' + a.client_name : ''}, te escribimos de *LC Performance*. ` +
+          `Hola${a.client_name ? ' ' + a.client_name : ''}, te escribimos de *${getBusinessName()}*. ` +
           `Reprogramamos tu turno para el ${prettyDate(a.date)}${a.time ? ' a las ' + a.time + ' hs' : ''}. ` +
           `Si no te queda bien, avisanos y lo reacomodamos. ¡Gracias!`;
         clientNotified = await sendToClient(a.client_phone, msg);
@@ -680,7 +682,7 @@ async function executeAssistantTool(toolName, args) {
         else if (uniquePhones.length > 1) {
           return JSON.stringify({
             success: false, ambiguous: true,
-            message: `Hay varios clientes que coinciden con "${args.client_name}". Pedile a Lucas el teléfono o más datos.`,
+            message: `Hay varios clientes que coinciden con "${args.client_name}". Pedile al dueño el teléfono o más datos.`,
             candidates: matches.map((m) => ({ name: m.client_name, phone: m.client_phone, car: m.car_info })),
           });
         }
@@ -722,7 +724,7 @@ async function executeAssistantTool(toolName, args) {
   }
 }
 
-// ─── Procesamiento del mensaje de Lucas ───────────────────────────────────────
+// ─── Procesamiento del mensaje del dueño ───────────────────────────────────────
 
 async function processAssistantMessage(phone, input) {
   const { text: userText, media, logText } = normalizeInput(input);
@@ -751,5 +753,5 @@ async function processAssistantMessage(phone, input) {
 
 module.exports = {
   processAssistantMessage, buildAssistantPrompt, ASSISTANT_TOOLS, executeAssistantTool,
-  sendToLucasAndRemember,
+  sendToOwnerAndRemember,
 };

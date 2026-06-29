@@ -1,6 +1,6 @@
-# LC Performance — Bot de WhatsApp + Dashboard
+# Turneo — Bot de turnos por WhatsApp + Dashboard
 
-Asistente de WhatsApp para el taller **LC Performance** (Rosario). El sistema está
+**Turneo** es un asistente de WhatsApp con IA para que cualquier negocio que trabaje con **turnos** (talleres, peluquerías, consultorios, estudios, etc.) atienda a sus clientes y gestione la agenda desde WhatsApp. El sistema está
 pensado **WhatsApp‑first**: el día a día del negocio se opera desde WhatsApp, y el
 dashboard web queda como panel de **configuración avanzada, revisión y control**,
 no como herramienta obligatoria.
@@ -43,7 +43,7 @@ Los números autorizados se toman, unificados, de tres fuentes
 
 1. `ADMIN_WHATSAPP_NUMBERS` en `.env` (lista por comas).
 2. Config `admin_numbers` (editable desde el dashboard).
-3. Config `lucas_number` (dueño principal; también recibe los avisos automáticos).
+3. Config `owner_number` (dueño/encargado principal; también recibe los avisos automáticos).
 
 Se comparan **solo por dígitos**, así que da igual el formato (`+54 9 341 …`, espacios,
 guiones o el JID completo).

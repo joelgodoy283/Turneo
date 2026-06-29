@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════
-   LC Performance — Dashboard Styles
+   Turneo — Dashboard Styles
 ════════════════════════════════════════════════════ */
 
 :root {
@@ -40,7 +40,7 @@ body {
   justify-content: center;
   min-height: 100vh;
   background:
-    radial-gradient(900px 500px at 50% -20%, rgba(232,185,35,.12), transparent 60%),
+    radial-gradient(900px 500px at 50% -20%, rgba(22,163,74,.12), transparent 60%),
     linear-gradient(135deg, #07090d 0%, #12161f 100%);
 }
 
@@ -73,7 +73,7 @@ body {
 }
 .login-logo p  { color: var(--text-muted); font-size: 14px; }
 
-/* Acento de marca (parte "PERFORMANCE") */
+/* Acento de marca */
 .brand-accent { color: var(--primary); }
 
 /* ─── LAYOUT ───────────────────────────────────────── */
@@ -302,7 +302,7 @@ body {
 }
 
 .chat-list-item:hover    { background: rgba(255,255,255,.04); }
-.chat-list-item.active   { background: rgba(232,185,35,.12); }
+.chat-list-item.active   { background: rgba(22,163,74,.12); }
 .chat-list-item.paused   { opacity: .65; }
 
 .chat-avatar {

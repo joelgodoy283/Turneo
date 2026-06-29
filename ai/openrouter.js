@@ -23,7 +23,7 @@ async function callOpenRouter(messages, systemPrompt, opts = {}) {
   const model  = process.env.OPENROUTER_MODEL || 'openai/gpt-4o-mini';
 
   if (!apiKey || apiKey === 'sk-or-v1-xxxxxxxxxxxxxxxx') {
-    return 'Lo siento, el asistente no está configurado aún. Por favor contactá directamente con Lucas al taller.';
+    return 'Lo siento, el asistente no está configurado aún. Por favor contactá directamente con el dueño al negocio.';
   }
 
   const allMessages = [{ role: 'system', content: systemPrompt }, ...messages];
@@ -48,8 +48,8 @@ async function callOpenRouter(messages, systemPrompt, opts = {}) {
         headers: {
           Authorization: `Bearer ${apiKey}`,
           'Content-Type': 'application/json',
-          'HTTP-Referer': 'https://lc-performance.com',
-          'X-Title': 'LC Performance WhatsApp Bot',
+          'HTTP-Referer': 'https://turneo.app',
+          'X-Title': 'Turneo WhatsApp Bot',
         },
         timeout: 30000,
       }
@@ -88,7 +88,7 @@ async function callOpenRouter(messages, systemPrompt, opts = {}) {
     // Volver a llamar con los resultados de las tools
   }
 
-  return 'Lo siento, tuve un problema al procesar tu solicitud. Por favor escribí "hablar con Lucas" para atención personalizada.';
+  return 'Lo siento, tuve un problema al procesar tu solicitud. Por favor escribí "hablar con una persona" para atención personalizada.';
 }
 
 /**
@@ -217,8 +217,8 @@ async function describeMedia(media, caption = '') {
         headers: {
           Authorization: `Bearer ${apiKey}`,
           'Content-Type': 'application/json',
-          'HTTP-Referer': 'https://lc-performance.com',
-          'X-Title': 'LC Performance WhatsApp Bot',
+          'HTTP-Referer': 'https://turneo.app',
+          'X-Title': 'Turneo WhatsApp Bot',
         },
         timeout: 30000,
       }
@@ -242,7 +242,7 @@ async function describeMedia(media, caption = '') {
  * monto). Se puede habilitar desde el dashboard con la config `share_prices`.
  */
 function buildSystemPrompt() {
-  const base = getConfig('ai_prompt') || 'Eres un asistente de taller mecánico.';
+  const base = getConfig('ai_prompt') || 'Eres un asistente de negocio.';
   const sharePrices = getConfig('share_prices') === 'true';
   const services = getServices();
 
@@ -255,7 +255,7 @@ Usá SIEMPRE esta fecha para interpretar expresiones como "hoy", "mañana", "pas
   // Regla de precios (siempre presente, decide el comportamiento)
   const priceRule = sharePrices
     ? 'PRECIOS: Podés informar los precios de los servicios listados abajo cuando el cliente los pida.'
-    : 'PRECIOS: NO informes precios, montos ni presupuestos bajo ninguna circunstancia, aunque el cliente insista. Si preguntan por precios, respondé amablemente que los valores los confirma Lucas personalmente luego de revisar el vehículo, y ofrecé agendar un turno o tomar los datos para que Lucas lo contacte.';
+    : 'PRECIOS: NO informes precios, montos ni presupuestos bajo ninguna circunstancia, aunque el cliente insista. Si preguntan por precios, respondé amablemente que los valores los confirmal dueño personalmente luego de revisar el vehículo, y ofrecé agendar un turno o tomar los datos para que el dueño lo contacte.';
 
   let prompt = `${base}
 
@@ -274,8 +274,8 @@ ${priceRule}`;
     });
 
     const serviciosHeader = sharePrices
-      ? 'SERVICIOS DEL TALLER (usá esta información para responder sobre servicios, precios y detalles):'
-      : 'SERVICIOS DEL TALLER (usá esta información para responder sobre servicios y detalles, SIN mencionar precios):';
+      ? 'SERVICIOS DEL NEGOCIO (usá esta información para responder sobre servicios, precios y detalles):'
+      : 'SERVICIOS DEL NEGOCIO (usá esta información para responder sobre servicios y detalles, SIN mencionar precios):';
 
     prompt += `
 
@@ -390,7 +390,7 @@ async function processMessage(phone, input) {
       '\n\nRESEÑA PENDIENTE: A este cliente se le pidió hace poco que valore el servicio recibido. ' +
       'Si en su mensaje da una nota del 1 al 10, o confirma que dejó la reseña en Google, agradecelo ' +
       'cálidamente y registrá su valoración con la herramienta record_service_rating. Si su nota es baja ' +
-      '(1 a 6), pedí disculpas y ofrecé que Lucas lo contacte. No insistas si no quiere participar.';
+      '(1 a 6), pedí disculpas y ofrecé que el dueño lo contacte. No insistas si no quiere participar.';
   }
 
   // Agregar mensaje al historial
@@ -408,8 +408,8 @@ async function processMessage(phone, input) {
   } catch (err) {
     console.error('[AI] Error llamando a OpenRouter:', err.response?.data || err.message);
     botReply = media
-      ? 'Disculpá, no pude procesar bien tu audio/imagen. ¿Me lo escribís en un mensaje? Si preferís, escribí "hablar con Lucas".'
-      : 'Disculpá, tuve un problema técnico. Por favor escribí "hablar con Lucas" para atención directa o intentá de nuevo en unos minutos.';
+      ? 'Disculpá, no pude procesar bien tu audio/imagen. ¿Me lo escribís en un mensaje? Si preferís, escribí "hablar con una persona".'
+      : 'Disculpá, tuve un problema técnico. Por favor escribí "hablar con una persona" para atención directa o intentá de nuevo en unos minutos.';
   }
 
   // Guardar el estado actualizado
@@ -451,8 +451,8 @@ async function simpleCompletion(systemPrompt, userPrompt) {
         headers: {
           Authorization: `Bearer ${apiKey}`,
           'Content-Type': 'application/json',
-          'HTTP-Referer': 'https://lc-performance.com',
-          'X-Title': 'LC Performance WhatsApp Bot',
+          'HTTP-Referer': 'https://turneo.app',
+          'X-Title': 'Turneo WhatsApp Bot',
         },
         timeout: 30000,
       }

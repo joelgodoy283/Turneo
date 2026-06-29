@@ -7,7 +7,7 @@
  * (claves `summary_number` y `summary_enabled`).
  */
 const cron = require('node-cron');
-const { getConfig, getMessagesSince, normalizePhone } = require('../database/db');
+const { getConfig, getBusinessName, getMessagesSince, normalizePhone } = require('../database/db');
 const { simpleCompletion } = require('../ai/openrouter');
 const { sendMessage, getConnectionState } = require('../whatsapp/baileys');
 
@@ -53,10 +53,10 @@ function buildDayData() {
 function templateSummary(data) {
   const fecha = new Date().toLocaleDateString('es-AR', { timeZone: TIMEZONE });
   if (!data.totalMessages) {
-    return `📊 *Resumen LC Performance — ${fecha}*\n\nHoy no hubo mensajes nuevos.`;
+    return `📊 *Resumen ${getBusinessName()} — ${fecha}*\n\nHoy no hubo mensajes nuevos.`;
   }
   return (
-    `📊 *Resumen LC Performance — ${fecha}*\n\n` +
+    `📊 *Resumen ${getBusinessName()} — ${fecha}*\n\n` +
     `• ${data.totalChats} chat(s) con actividad\n` +
     `• ${data.incoming} mensaje(s) recibidos\n` +
     `• ${data.outgoing} respuesta(s) enviadas`
@@ -100,7 +100,7 @@ async function generateAndSend({ force = false } = {}) {
     const fecha = new Date().toLocaleDateString('es-AR', { timeZone: TIMEZONE });
     const sys =
       'Sos un asistente que redacta un resumen breve y claro (en español rioplatense) ' +
-      'de la actividad diaria de un taller mecánico en WhatsApp. Para WhatsApp: usá ' +
+      'de la actividad diaria de un negocio en WhatsApp. Para WhatsApp: usá ' +
       'viñetas con •, *negritas* para títulos, y máximo ~12 líneas. Destacá: cantidad de ' +
       'clientes, temas/consultas frecuentes, turnos o pedidos importantes y quién pidió ' +
       'hablar con una persona.';

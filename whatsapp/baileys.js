@@ -21,7 +21,7 @@ const SESSION_DIR = process.env.SESSION_DIR || path.join(__dirname, '..', 'sessi
 
 // Frases que activan el handoff a humano
 const HUMAN_TRIGGERS = [
-  'hablar con lucas', 'quiero un humano', 'humano', 'persona real',
+  'hablar con una persona', 'quiero un humano', 'humano', 'persona real',
   'hablar con una persona', 'atencion humana', 'atención humana',
   'agente', 'hablar con alguien', 'no quiero el bot',
 ];
@@ -55,7 +55,7 @@ async function startWhatsApp() {
     auth: authState,
     logger,
     printQRInTerminal: false, // Lo mandamos al dashboard via Socket.io
-    browser: ['LC Performance Bot', 'Chrome', '120.0.0'],
+    browser: ['Turneo Bot', 'Chrome', '120.0.0'],
     syncFullHistory: false,
     markOnlineOnConnect: false,
     generateHighQualityLinkPreview: false,
@@ -191,7 +191,7 @@ async function startWhatsApp() {
 
       if (isHumanRequest) {
         pauseContact(phone);
-        const pauseMsg = '🤝 Entendido, voy a avisarle a Lucas para que te atienda personalmente. Por favor esperá unos minutos.';
+        const pauseMsg = '🤝 Entendido, voy a avisarle al dueño para que te atienda personalmente. Por favor esperá unos minutos.';
         await sendMessage(phone, pauseMsg);
         global.io?.emit('chat:paused', { phone, reason: 'human_request' });
         global.io?.emit('notification', { type: 'handoff', phone, message: `El cliente ${phone} pidió atención humana.` });
@@ -213,7 +213,7 @@ async function startWhatsApp() {
         await sendMessage(phone, reply);
       } catch (err) {
         console.error('[WA] Error procesando mensaje con IA:', err.message);
-        await sendMessage(phone, 'Lo siento, tuve un error técnico. Por favor escribí "hablar con Lucas" para atención directa.');
+        await sendMessage(phone, 'Lo siento, tuve un error técnico. Por favor escribí "hablar con una persona" para atención directa.');
       } finally {
         await sock.sendPresenceUpdate('paused', phone);
       }
@@ -312,9 +312,9 @@ function unsupportedMediaReply(content) {
       : 'Esa imagen es demasiado pesada para procesarla 😅. ¿Me la mandás en menor calidad o me contás por texto?';
   }
   if (isVoice) {
-    return 'No pude procesar tu nota de voz 🙉. ¿Me lo escribís por texto? Si preferís, escribí "hablar con Lucas".';
+    return 'No pude procesar tu nota de voz 🙉. ¿Me lo escribís por texto? Si preferís, escribí "hablar con una persona".';
   }
-  return 'No pude abrir bien esa imagen. ¿Me la reenviás o me contás por texto qué necesitás? Si preferís, escribí "hablar con Lucas".';
+  return 'No pude abrir bien esa imagen. ¿Me la reenviás o me contás por texto qué necesitás? Si preferís, escribí "hablar con una persona".';
 }
 
 /** Descarga un medio de WhatsApp y lo devuelve en base64, o null si falla. */

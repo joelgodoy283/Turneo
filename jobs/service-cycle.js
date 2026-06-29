@@ -1,11 +1,11 @@
 /**
- * jobs/service-cycle.js — Ciclo de servicio del día (interacción con Lucas).
+ * jobs/service-cycle.js — Ciclo de servicio del día (interacción con el dueño).
  *
- * 1) Check-in 10:00 ART: le pasa a Lucas los turnos de hoy y le pregunta quién
+ * 1) Check-in 10:00 ART: le pasa al dueño los turnos de hoy y le pregunta quién
  *    vino y para qué hora estima cada auto. Su respuesta la procesa el asistente
  *    (marca asistencia + carga hora estimada de finalización).
  * 2) Poller (cada 10'): cuando llega la hora estimada de un auto en proceso, le
- *    pregunta a Lucas si lo terminó. Si confirma, el asistente marca terminado y
+ *    pregunta al dueño si lo terminó. Si confirma, el asistente marca terminado y
  *    el cliente recibe el aviso de retiro.
  */
 const cron = require('node-cron');
@@ -39,7 +39,7 @@ async function doCheckin({ force = false } = {}) {
     `¿Vinieron todos? ¿Para qué hora estimás que va a estar listo cada uno? ` +
     `Decímelo (ej: "vinieron todos, el Focus 17hs y el Gol 15") y lo anoto.`;
 
-  const sent = await assistant.sendToLucasAndRemember(text);
+  const sent = await assistant.sendToOwnerAndRemember(text);
   return { ok: sent, sent, count: appts.length };
 }
 
@@ -61,7 +61,7 @@ async function doFinishChecks() {
       `🔧 ¿Terminaste el ${a.car_info || 'vehículo'} de ${a.client_name || a.client_phone}? ` +
       `(estimabas ${a.estimated_finish} hs) [id ${a.id}]\n` +
       `Si ya está, confirmámelo y le aviso al cliente que puede retirarlo.`;
-    const sent = await assistant.sendToLucasAndRemember(text);
+    const sent = await assistant.sendToOwnerAndRemember(text);
     // Marcamos como preguntado solo si se pudo enviar (si no, se reintenta luego).
     if (sent) { updateAppointment(a.id, { finish_check_sent: 1 }); asked++; }
   }

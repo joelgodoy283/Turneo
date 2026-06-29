@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════
-   LC Performance Dashboard — Frontend Logic
+   Turneo Dashboard — Frontend Logic
 ════════════════════════════════════════════════════ */
 
 const socket = io({
@@ -453,7 +453,7 @@ socket.on('chat:resumed', ({ phone }) => {
 
 socket.on('notification', ({ type, phone, message }) => {
   if (type === 'handoff') {
-    showToast(`🤝 ${formatPhone(phone)} pidió hablar con Lucas`, 'handoff');
+    showToast(`🤝 ${formatPhone(phone)} pidió hablar con una persona`, 'handoff');
     pendingMessages++;
     updatePendingBadge();
   }
@@ -748,7 +748,7 @@ async function loadTurnosConfig() {
   const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v ?? ''; };
   const chk = (id, v) => { const el = document.getElementById(id); if (el) el.checked = v === 'true'; };
 
-  set('cfg-lucas-number', c.lucas_number);
+  set('cfg-owner-number', c.owner_number);
   set('cfg-capacity', c.cal_capacity_per_day);
   set('cfg-slots', c.cal_slots);
   set('cfg-review-url', c.google_review_url);
@@ -770,7 +770,7 @@ document.getElementById('btn-save-turnos')?.addEventListener('click', async () =
     if (document.getElementById('wd-' + d)?.checked) workdays.push(d);
   }
   const body = {
-    lucas_number: document.getElementById('cfg-lucas-number').value.trim(),
+    owner_number: document.getElementById('cfg-owner-number').value.trim(),
     cal_capacity_per_day: document.getElementById('cfg-capacity').value.trim() || '3',
     cal_slots: document.getElementById('cfg-slots').value.trim(),
     cal_workdays: workdays.join(','),
@@ -862,7 +862,7 @@ async function cancelAppointment(id) {
 
 document.getElementById('btn-refresh-appointments')?.addEventListener('click', loadAppointments);
 
-// ─── ASISTENTE DE LUCAS (prompt) ─────────────────────
+// ─── ASISTENTE DEL DUEÑO (prompt) ─────────────────────
 async function loadAssistantPrompt() {
   const res = await apiFetch('/api/config/assistant-prompt');
   if (!res) return;

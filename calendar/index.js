@@ -3,15 +3,15 @@
  *
  * Fuente de verdad: SIEMPRE la tabla `appointments` (estados, recordatorios y
  * reseñas viven ahí). Si Google Calendar está configurado, además se espeja el
- * turno como evento en Google para que Lucas lo vea en su agenda.
+ * turno como evento en Google para que el dueño lo vea en su agenda.
  *
- * La disponibilidad la gobierna siempre el modelo de capacidad del taller
+ * La disponibilidad la gobierna siempre el modelo de capacidad del negocio
  * (capacidad/día + horarios de entrega), porque refleja la realidad del local.
  */
 const google = require('./google-calendar');
 const local = require('./local-calendar');
 const db = require('../database/db');
-const { notifyLucas } = require('../whatsapp/notify');
+const { notifyOwner } = require('../whatsapp/notify');
 
 /** ¿Está Google Calendar configurado (credenciales + token)? */
 function usingGoogle() {
@@ -38,7 +38,7 @@ async function getAvailability(dateStr) {
 /**
  * Crea un turno. data: { client_phone, client_name, car_info, service, date,
  * start_time, end_time? }. Inserta en la DB (fuente de verdad), espeja en
- * Google si está configurado, y avisa a Lucas.
+ * Google si está configurado, y avisa al dueño.
  */
 async function createAppointment(data) {
   const res = await local.createAppointment({
@@ -72,17 +72,17 @@ async function createAppointment(data) {
     }
   }
 
-  // Aviso a Lucas (se omite si lo creó el propio Lucas a mano)
+  // Aviso al dueño (se omite si lo creó el propio el dueño a mano)
   if (data.notifyOwner !== false) {
     const tel = db.normalizePhone(data.client_phone);
-    const lucasMsg =
+    const ownerMsg =
       `🗓️ *Nuevo turno agendado*\n` +
       `Cliente: ${data.client_name || '—'}\n` +
       `Vehículo: ${data.car_info || '—'}\n` +
       (data.service ? `Servicio: ${data.service}\n` : '') +
       `Día: ${data.date}${data.start_time ? ` a las ${data.start_time} hs` : ''}\n` +
       `Tel: ${tel}`;
-    notifyLucas(lucasMsg).catch(() => {});
+    notifyOwner(ownerMsg).catch(() => {});
   }
 
   return res;

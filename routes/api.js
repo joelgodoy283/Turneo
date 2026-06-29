@@ -21,7 +21,7 @@ const { sendReminders } = require('../jobs/reminders');
 
 // Claves de configuración de turnos/avisos editables desde el dashboard.
 const TURNOS_KEYS = [
-  'lucas_number', 'cal_capacity_per_day', 'cal_slots', 'cal_workdays', 'google_review_url',
+  'owner_number', 'cal_capacity_per_day', 'cal_slots', 'cal_workdays', 'google_review_url',
   'morning_summary_enabled', 'checkin_enabled', 'reminder_enabled', 'review_enabled',
 ];
 
@@ -54,7 +54,7 @@ router.get('/chats/:phone/messages', requireApiAuth, (req, res) => {
   res.json({ messages, paused });
 });
 
-// ─── Enviar mensaje desde el dashboard (Lucas interviene) ─────────────────
+// ─── Enviar mensaje desde el dashboard (el dueño interviene) ─────────────────
 router.post('/chats/:phone/send', requireApiAuth, async (req, res) => {
   const { phone } = req.params;
   const { text } = req.body;
@@ -210,7 +210,7 @@ router.post('/config/turnos', requireApiAuth, (req, res) => {
   res.json({ success: true });
 });
 
-// ─── Prompt del asistente de Lucas ───────────────────────────────────────────
+// ─── Prompt del asistente del dueño ───────────────────────────────────────────
 router.get('/config/assistant-prompt', requireApiAuth, (req, res) => {
   res.json({ prompt: getConfig('assistant_prompt') || '' });
 });

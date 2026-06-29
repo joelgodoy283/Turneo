@@ -45,7 +45,7 @@ if (!fs.existsSync(sessionsDir)) fs.mkdirSync(sessionsDir, { recursive: true });
 
 // ─── Middleware ─────────────────────────────────────────────────────────────
 const sessionMiddleware = session({
-  secret: process.env.SESSION_SECRET || 'lc-performance-secret-change-me',
+  secret: process.env.SESSION_SECRET || 'turneo-secret-change-me',
   resave: false,
   saveUninitialized: false,
   cookie: {
@@ -107,7 +107,7 @@ const PORT = process.env.PORT || 3000;
 
 async function main() {
   console.log('┌─────────────────────────────────────────┐');
-  console.log('│   LC Performance - WhatsApp Bot v1.0    │');
+  console.log('│          Turneo - WhatsApp Bot          │');
   console.log('└─────────────────────────────────────────┘');
 
   // 1. Inicializar base de datos

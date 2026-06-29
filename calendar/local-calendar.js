@@ -1,12 +1,12 @@
 /**
  * calendar/local-calendar.js — Sistema propio de turnos (sin Google Calendar).
  *
- * Modelo del taller: cada turno es un cupo de ENTREGA a la mañana (el auto
+ * Modelo del negocio: cada turno es un cupo de ENTREGA a la mañana (el auto
  * queda el día). La disponibilidad se rige por:
  *   - cal_capacity_per_day : cuántos autos se atienden por día (default 3)
  *   - cal_slots            : horarios de entrega ofrecidos (default 08:00,08:30,09:00)
  *   - cal_workdays         : días laborables, 0=Dom ... 6=Sáb (default Lun-Sáb)
- * Todo configurable por Lucas desde el dashboard.
+ * Todo configurable por el dueño desde el dashboard.
  */
 const {
   getConfig,
@@ -38,7 +38,7 @@ function weekdayOf(dateStr) {
 
 function isWorkday(dateStr) {
   const workdays = cfgList('cal_workdays', ['1', '2', '3', '4', '5', '6']).map(Number);
-  // Un día laborable que Lucas bloqueó (feriado, vacaciones) deja de estar disponible.
+  // Un día laborable que el dueño bloqueó (feriado, vacaciones) deja de estar disponible.
   if (isDayBlocked(dateStr)) return false;
   return workdays.includes(weekdayOf(dateStr));
 }
@@ -85,7 +85,7 @@ function freeSlots(dateStr) {
   const slots = cfgList('cal_slots', ['08:00', '08:30', '09:00']);
   const capacity = cfgInt('cal_capacity_per_day', 3);
   const taken = getAppointmentsByDate(dateStr).map((a) => a.time);
-  const blocked = getBlockedTimes(dateStr); // horarios puntuales bloqueados por Lucas
+  const blocked = getBlockedTimes(dateStr); // horarios puntuales bloqueados por el dueño
   const unavailable = new Set([...taken, ...blocked]);
   const remaining = capacity - taken.length;
   if (remaining <= 0) return [];
@@ -97,7 +97,7 @@ async function getAvailability(dateStr) {
     return {
       available: false,
       slots: [],
-      message: `El ${dateStr} el taller está cerrado. Puedo ofrecerte otro día laborable (lunes a sábado).`,
+      message: `El ${dateStr} el negocio está cerrado. Puedo ofrecerte otro día laborable (lunes a sábado).`,
     };
   }
   const capacity = cfgInt('cal_capacity_per_day', 3);
@@ -126,7 +126,7 @@ async function createAppointment({
   date, start_time, source = 'local', google_event_id = '',
 }) {
   if (!isWorkday(date)) {
-    return { success: false, message: `El ${date} el taller está cerrado, no puedo agendar ese día.` };
+    return { success: false, message: `El ${date} el negocio está cerrado, no puedo agendar ese día.` };
   }
   const capacity = cfgInt('cal_capacity_per_day', 3);
   if (countAppointmentsOnDate(date) >= capacity) {

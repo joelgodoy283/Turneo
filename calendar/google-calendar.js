@@ -185,7 +185,7 @@ async function createAppointment({ summary, description, dateStr, startTime, end
     success: true,
     eventId: response.data.id,
     link: response.data.htmlLink,
-    message: `¡Turno agendado! ${summary} el ${dateStr} a las ${startTime} hs. Lucas recibirá una notificación.`,
+    message: `¡Turno agendado! ${summary} el ${dateStr} a las ${startTime} hs. el dueño recibirá una notificación.`,
   };
 }
 

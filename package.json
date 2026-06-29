@@ -1,7 +1,7 @@
 {
-  "name": "lc-performance-bot",
+  "name": "turneo",
   "version": "1.0.0",
-  "description": "WhatsApp Chatbot + Dashboard para LC Performance Taller Mecánico",
+  "description": "Turneo — Bot de turnos por WhatsApp con IA + dashboard para negocios",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

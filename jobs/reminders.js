@@ -7,7 +7,7 @@
  * sistema propio como los espejados en Google. On/off con `reminder_enabled`.
  */
 const cron = require('node-cron');
-const { getConfig, getAppointmentsBetween, updateAppointment } = require('../database/db');
+const { getConfig, getBusinessName, getAppointmentsBetween, updateAppointment } = require('../database/db');
 const local = require('../calendar/local-calendar');
 
 const TZ = 'America/Argentina/Buenos_Aires';
@@ -18,10 +18,11 @@ function prettyDate(dateStr) {
 }
 
 function reminderText(appt) {
+  const address = (getConfig('business_address') || '').trim();
   return (
-    `🔔 Hola${appt.client_name ? ' ' + appt.client_name : ''}, te recordamos tu turno en *LC Performance* ` +
+    `🔔 Hola${appt.client_name ? ' ' + appt.client_name : ''}, te recordamos tu turno en *${getBusinessName()}* ` +
     `para mañana ${prettyDate(appt.date)}${appt.time ? ' a las ' + appt.time + ' hs' : ''}.\n` +
-    `📍 Bv. Seguí 2122, Rosario.\n` +
+    (address ? `📍 ${address}.\n` : '') +
     `Si no podés venir o querés reprogramarlo, avisanos. ¡Te esperamos!`
   );
 }

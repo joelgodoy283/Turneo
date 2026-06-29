@@ -12,7 +12,7 @@ const TOOL_DEFINITIONS = [
     type: 'function',
     function: {
       name: 'check_calendar_availability',
-      description: 'Consulta la disponibilidad del taller en una fecha específica. Úsala cuando el cliente quiera conocer los días u horarios disponibles para un turno.',
+      description: 'Consulta la disponibilidad del negocio en una fecha específica. Úsala cuando el cliente quiera conocer los días u horarios disponibles para un turno.',
       parameters: {
         type: 'object',
         properties: {
@@ -29,7 +29,7 @@ const TOOL_DEFINITIONS = [
     type: 'function',
     function: {
       name: 'create_appointment',
-      description: 'Crea un turno en el calendario del taller. Úsala solo cuando el cliente confirmó todos sus datos (nombre, auto, problema) y eligió fecha y hora.',
+      description: 'Crea un turno en el calendario del negocio. Úsala solo cuando el cliente confirmó todos sus datos (nombre, auto, problema) y eligió fecha y hora.',
       parameters: {
         type: 'object',
         properties: {
@@ -84,7 +84,7 @@ const TOOL_DEFINITIONS = [
 async function executeTool(toolName, args, clientPhone) {
   if (!isConfigured()) {
     return JSON.stringify({
-      error: 'El sistema de turnos no está disponible. Dejá tu nombre y número para que Lucas te contacte.',
+      error: 'El sistema de turnos no está disponible. Dejá tu nombre y número para que el dueño te contacte.',
     });
   }
 

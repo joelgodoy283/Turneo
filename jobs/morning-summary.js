@@ -1,15 +1,15 @@
 /**
- * jobs/morning-summary.js — Resumen matutino para Lucas (08:00 hora Argentina).
+ * jobs/morning-summary.js — Resumen matutino paral dueño (08:00 hora Argentina).
  *
  * Incluye los turnos de HOY (bloque determinístico) + un resumen de la actividad
  * de AYER (contactos que escribieron), redactado con IA. Se envía al número de
- * Lucas (config `lucas_number`, con fallback a `summary_number`).
+ * el dueño (config `owner_number`, con fallback a `summary_number`).
  * On/off con la config `morning_summary_enabled`.
  */
 const cron = require('node-cron');
 const { getConfig, getMessagesBetween, getAppointmentsBetween, normalizePhone } = require('../database/db');
 const { simpleCompletion } = require('../ai/openrouter');
-const { notifyLucas } = require('../whatsapp/notify');
+const { notifyOwner } = require('../whatsapp/notify');
 const local = require('../calendar/local-calendar');
 
 const TZ = 'America/Argentina/Buenos_Aires';
@@ -62,7 +62,7 @@ async function yesterdayBlock(yesterdayStr) {
 
   const sys =
     'Redactá en español rioplatense un resumen BREVE (máx ~8 líneas) de la actividad de ayer en el ' +
-    'WhatsApp de un taller mecánico, para el dueño. Usá viñetas con • y *negritas* para destacar. ' +
+    'WhatsApp de un negocio, para el dueño. Usá viñetas con • y *negritas* para destacar. ' +
     'Mencioná cuántos clientes escribieron, qué pidieron, posibles turnos/interesados y quién pidió un humano. Sin saludos.';
   const user = `Conversaciones de ayer (${byPhone.size} clientes):\n${transcript}`;
 
@@ -80,13 +80,13 @@ async function generateAndSend({ force = false } = {}) {
   const yesterday = local.addDays(today, -1);
 
   const text =
-    `☀️ *Buen día, Lucas* — ${prettyDate(today)}\n\n` +
+    `☀️ *Buen día* — ${prettyDate(today)}\n\n` +
     `${appointmentsBlock(today)}\n\n` +
     `${await yesterdayBlock(yesterday)}`;
 
-  const sent = await notifyLucas(text);
-  if (!sent) return { ok: false, sent: false, reason: 'No se pudo enviar (¿WhatsApp desconectado o sin número de Lucas?).', text };
-  console.log('[MORNING] ✅ Resumen matutino enviado a Lucas');
+  const sent = await notifyOwner(text);
+  if (!sent) return { ok: false, sent: false, reason: 'No se pudo enviar (¿WhatsApp desconectado o sin número del dueño?).', text };
+  console.log('[MORNING] ✅ Resumen matutino enviado al dueño');
   return { ok: true, sent: true, text };
 }
 
