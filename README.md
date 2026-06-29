@@ -163,6 +163,11 @@ asistente, servicios y precios, capacidad/horarios/días laborables, números ad
 estado de WhatsApp/Instagram, historial de chats y excepciones. **La operación diaria
 no lo requiere** — se hace desde WhatsApp.
 
+El texto de **Configurar IA** es el prompt oficial y tiene máxima prioridad. Los
+bloques automáticos (fecha, servicios, precios, perfil seguro, reseñas e historial)
+solo agregan contexto y no pueden contradecirlo. El prompt genérico del código se usa
+únicamente al crear una base nueva que todavía no tenga `ai_prompt`.
+
 ---
 
 ## Estructura del proyecto
