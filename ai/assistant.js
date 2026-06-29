@@ -4,7 +4,7 @@
  * Cuando un mensaje llega del número del dueño (config `owner_number`), en vez de
  * atenderlo como cliente se lo procesa acá: prompt y herramientas distintas para
  * gestionar la agenda (consultar/crear/cancelar/reagendar turnos, ver contactos
- * del día, marcar cuándo queda listo un auto).
+ * del día, marcar cuándo queda listo un pedido).
  */
 const {
   getConfig, setConfig, getBusinessName, getConversationState, saveConversationState,
@@ -29,7 +29,7 @@ function buildAssistantPrompt() {
 
 ADEMÁS DE LA AGENDA, PODÉS (tenés herramientas para esto):
 - Ver horarios libres de un día o los próximos días con cupo (check_free_slots).
-- Buscar turnos por nombre, teléfono, patente/vehículo o servicio (search_appointments).
+- Buscar turnos por nombre, teléfono, patente/pedido o servicio (search_appointments).
 - Bloquear/desbloquear días completos u horarios puntuales: feriados, vacaciones, imprevistos (block_schedule / unblock_schedule / list_blocks).
 - Dar métricas: cuántos turnos hay en un rango, por estado, por servicio, cuántos clientes escribieron (business_metrics).
 - Armar el resumen del día: turnos + quién escribió (day_summary).
@@ -99,7 +99,7 @@ const ASSISTANT_TOOLS = [
         properties: {
           client_name: { type: 'string' },
           client_phone: { type: 'string', description: 'Número de WhatsApp del cliente (con código de país).' },
-          car_info: { type: 'string', description: 'Marca, modelo, año y/o problema.' },
+          detail: { type: 'string', description: 'Marca, modelo, año y/o problema.' },
           service: { type: 'string' },
           date: { type: 'string', description: 'YYYY-MM-DD' },
           start_time: { type: 'string', description: 'HH:MM (horario de entrega).' },
@@ -129,12 +129,12 @@ const ASSISTANT_TOOLS = [
     type: 'function',
     function: {
       name: 'set_ready_date',
-      description: 'Registra/ajusta el día en que un vehículo va a estar listo (ej: "el auto de Fulano está para el viernes"). Sirve para coordinar el aviso de retiro y el pedido de reseña.',
+      description: 'Registra/ajusta el día en que un pedido va a estar listo (ej: "el pedido de Fulano está para el viernes"). Sirve para coordinar el aviso de retiro y el pedido de reseña.',
       parameters: {
         type: 'object',
         properties: {
           appointment_id: { type: 'number' },
-          ready_date: { type: 'string', description: 'YYYY-MM-DD en que el auto queda listo.' },
+          ready_date: { type: 'string', description: 'YYYY-MM-DD en que el pedido queda listo.' },
         },
         required: ['appointment_id', 'ready_date'],
       },
@@ -159,7 +159,7 @@ const ASSISTANT_TOOLS = [
     type: 'function',
     function: {
       name: 'set_estimated_finish',
-      description: 'Carga la hora estimada en que un vehículo va a estar listo HOY (la que dice el dueño). A esa hora se le va a preguntar al dueño si terminó.',
+      description: 'Carga la hora estimada en que un pedido va a estar listo HOY (la que dice el dueño). A esa hora se le va a preguntar al dueño si terminó.',
       parameters: {
         type: 'object',
         properties: {
@@ -174,7 +174,7 @@ const ASSISTANT_TOOLS = [
     type: 'function',
     function: {
       name: 'mark_finished',
-      description: 'Marca un vehículo como TERMINADO cuando el dueño lo confirma. Le avisa automáticamente al cliente que puede pasar a retirarlo. Usala SIEMPRE que el dueño confirme que terminó un auto.',
+      description: 'Marca un pedido como TERMINADO cuando el dueño lo confirma. Le avisa automáticamente al cliente que puede pasar a retirarlo. Usala SIEMPRE que el dueño confirme que terminó un pedido.',
       parameters: {
         type: 'object',
         properties: {
@@ -218,7 +218,7 @@ const ASSISTANT_TOOLS = [
     type: 'function',
     function: {
       name: 'search_appointments',
-      description: 'Busca turnos por nombre del cliente, teléfono, patente/vehículo o servicio. Usala cuando el dueño dice "buscá el turno de Pedro", "el turno del Gol blanco", "turnos de tal patente", etc.',
+      description: 'Busca turnos por nombre del cliente, teléfono, patente/pedido o servicio. Usala cuando el dueño dice "buscá el turno de Pedro", "el turno del Gol blanco", "turnos de tal patente", etc.',
       parameters: {
         type: 'object',
         properties: {
@@ -348,7 +348,7 @@ function prettyDate(dateStr) {
 function fmtAppt(a) {
   return {
     id: a.id, date: a.date, time: a.time, status: a.status,
-    client_name: a.client_name, car_info: a.car_info, service: a.service,
+    client_name: a.client_name, detail: a.detail, service: a.service,
     estimated_finish: a.estimated_finish || null, ready_date: a.ready_date || null,
     phone: a.client_phone,
   };
@@ -394,7 +394,7 @@ function pickupText(appt) {
   const addressLine = address ? `Podés pasar a retirarlo por ${address} ` : 'Ya podés pasar a retirarlo ';
   return (
     `✅ ¡Hola${appt.client_name ? ' ' + appt.client_name : ''}! Te escribimos de *${getBusinessName()}*: ` +
-    `tu ${appt.car_info || 'pedido'} ya está listo. ${addressLine}` +
+    `tu ${appt.detail || 'pedido'} ya está listo. ${addressLine}` +
     `en nuestro horario de atención. ¡Gracias por confiar en nosotros! 🙌`
   );
 }
@@ -416,7 +416,7 @@ async function sendToOwnerAndRemember(text) {
     await sendMessage(jid, text);
     const state = getConversationState(jid);
     const history = [...state.history, { role: 'assistant', content: text }].slice(-MAX_HISTORY_MESSAGES);
-    saveConversationState(jid, history, state.step, state.car_info, false);
+    saveConversationState(jid, history, state.step, state.detail, false);
     return true;
   } catch (err) {
     console.error('[ASSISTANT] Error escribiendo al dueño:', err.message);
@@ -483,7 +483,7 @@ async function executeAssistantTool(toolName, args) {
     if (toolName === 'create_appointment_manual') {
       const res = await cal.createAppointment({
         client_name: args.client_name, client_phone: args.client_phone,
-        car_info: args.car_info, service: args.service,
+        detail: args.detail, service: args.service,
         date: args.date, start_time: args.start_time,
         notifyOwner: false, // lo está creando el propio el dueño
       });
@@ -514,7 +514,7 @@ async function executeAssistantTool(toolName, args) {
       updateAppointment(args.appointment_id, { ready_date: args.ready_date });
       return JSON.stringify({
         success: true,
-        message: `Anotado: el ${appt.car_info || 'vehículo'} de ${appt.client_name || appt.client_phone} queda listo el ${args.ready_date}.`,
+        message: `Anotado: el ${appt.detail || 'pedido'} de ${appt.client_name || appt.client_phone} queda listo el ${args.ready_date}.`,
       });
     }
 
@@ -539,7 +539,7 @@ async function executeAssistantTool(toolName, args) {
       updateAppointment(args.appointment_id, { estimated_finish: args.time, status: 'in_progress', finish_check_sent: 0 });
       return JSON.stringify({
         success: true,
-        message: `Listo, ${appt.car_info || 'el vehículo'} de ${appt.client_name || appt.client_phone} estimado para las ${args.time}. Te aviso a esa hora para confirmar.`,
+        message: `Listo, ${appt.detail || 'el pedido'} de ${appt.client_name || appt.client_phone} estimado para las ${args.time}. Te aviso a esa hora para confirmar.`,
       });
     }
 
@@ -555,7 +555,7 @@ async function executeAssistantTool(toolName, args) {
       updateAppointment(args.appointment_id, { pickup_notified: notified ? 1 : 0 });
       return JSON.stringify({
         success: true, client_notified: notified,
-        message: `Marqué terminado el ${appt.car_info || 'vehículo'} de ${appt.client_name || appt.client_phone}.` +
+        message: `Marqué terminado el ${appt.detail || 'pedido'} de ${appt.client_name || appt.client_phone}.` +
           (notified ? ' Le avisé al cliente que puede pasar a retirarlo.' : ' (No pude avisar al cliente: WhatsApp desconectado.)'),
       });
     }
@@ -683,7 +683,7 @@ async function executeAssistantTool(toolName, args) {
           return JSON.stringify({
             success: false, ambiguous: true,
             message: `Hay varios clientes que coinciden con "${args.client_name}". Pedile al dueño el teléfono o más datos.`,
-            candidates: matches.map((m) => ({ name: m.client_name, phone: m.client_phone, car: m.car_info })),
+            candidates: matches.map((m) => ({ name: m.client_name, phone: m.client_phone, car: m.detail })),
           });
         }
       }
@@ -747,7 +747,7 @@ async function processAssistantMessage(phone, input) {
     reply = 'Uh, tuve un problema técnico procesando eso. Probá de nuevo en un momento.';
   }
 
-  saveConversationState(phone, [...history, { role: 'assistant', content: reply }], state.step, state.car_info, false);
+  saveConversationState(phone, [...history, { role: 'assistant', content: reply }], state.step, state.detail, false);
   return reply;
 }
 

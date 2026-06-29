@@ -2,9 +2,9 @@
  * jobs/service-cycle.js — Ciclo de servicio del día (interacción con el dueño).
  *
  * 1) Check-in 10:00 ART: le pasa al dueño los turnos de hoy y le pregunta quién
- *    vino y para qué hora estima cada auto. Su respuesta la procesa el asistente
+ *    vino y para qué hora estima cada pedido. Su respuesta la procesa el asistente
  *    (marca asistencia + carga hora estimada de finalización).
- * 2) Poller (cada 10'): cuando llega la hora estimada de un auto en proceso, le
+ * 2) Poller (cada 10'): cuando llega la hora estimada de un pedido en proceso, le
  *    pregunta al dueño si lo terminó. Si confirma, el asistente marca terminado y
  *    el cliente recibe el aviso de retiro.
  */
@@ -32,7 +32,7 @@ async function doCheckin({ force = false } = {}) {
   if (!appts.length) return { ok: true, sent: false, reason: 'Hoy no hay turnos para el check-in.' };
 
   const list = appts
-    .map((a) => `• ${a.time || '—'} — ${a.client_name || a.client_phone}${a.car_info ? ` (${a.car_info})` : ''} [id ${a.id}]`)
+    .map((a) => `• ${a.time || '—'} — ${a.client_name || a.client_phone}${a.detail ? ` (${a.detail})` : ''} [id ${a.id}]`)
     .join('\n');
   const text =
     `🔧 *Check-in del día*\nEstos son los turnos de hoy:\n${list}\n\n` +
@@ -58,7 +58,7 @@ async function doFinishChecks() {
   let asked = 0;
   for (const a of pend) {
     const text =
-      `🔧 ¿Terminaste el ${a.car_info || 'vehículo'} de ${a.client_name || a.client_phone}? ` +
+      `🔧 ¿Terminaste el ${a.detail || 'pedido'} de ${a.client_name || a.client_phone}? ` +
       `(estimabas ${a.estimated_finish} hs) [id ${a.id}]\n` +
       `Si ya está, confirmámelo y le aviso al cliente que puede retirarlo.`;
     const sent = await assistant.sendToOwnerAndRemember(text);

@@ -188,7 +188,7 @@ async function describeMedia(media, caption = '') {
   const sys = isAudio
     ? 'Sos un transcriptor. Transcribí EXACTAMENTE lo que se dice en la nota de voz, en español. ' +
       'Devolvé SOLO la transcripción, sin comillas ni comentarios. Si no se entiende nada, devolvé "(audio inaudible)".'
-    : 'Describí en UNA frase breve, en español, qué muestra la imagen (objeto/vehículo/parte/daño/texto visible). ' +
+    : 'Describí en UNA frase breve, en español, qué muestra la imagen (objeto/pedido/parte/daño/texto visible). ' +
       'Si es una captura con texto, resumí lo importante. Devolvé SOLO la descripción.';
 
   const userContent = isAudio
@@ -255,7 +255,7 @@ Usá SIEMPRE esta fecha para interpretar expresiones como "hoy", "mañana", "pas
   // Regla de precios (siempre presente, decide el comportamiento)
   const priceRule = sharePrices
     ? 'PRECIOS: Podés informar los precios de los servicios listados abajo cuando el cliente los pida.'
-    : 'PRECIOS: NO informes precios, montos ni presupuestos bajo ninguna circunstancia, aunque el cliente insista. Si preguntan por precios, respondé amablemente que los valores los confirmal dueño personalmente luego de revisar el vehículo, y ofrecé agendar un turno o tomar los datos para que el dueño lo contacte.';
+    : 'PRECIOS: NO informes precios, montos ni presupuestos bajo ninguna circunstancia, aunque el cliente insista. Si preguntan por precios, respondé amablemente que los valores los confirmal dueño personalmente luego de revisar el pedido, y ofrecé agendar un turno o tomar los datos para que el dueño lo contacte.';
 
   let prompt = `${base}
 
@@ -292,7 +292,7 @@ ${lines.join('\n')}`;
 function formatClientProfile(p) {
   const parts = [];
   if (p.nombre)          parts.push(`Nombre: ${p.nombre}`);
-  if (p.vehiculos)       parts.push(`Vehículo(s): ${p.vehiculos}`);
+  if (p.vehiculos)       parts.push(`Detalle(s): ${p.vehiculos}`);
   if (p.estilo)          parts.push(`Estilo de habla: ${p.estilo}`);
   if (p.ultimo_servicio) parts.push(`Último servicio: ${p.ultimo_servicio}`);
   if (p.resumen)         parts.push(`Resumen: ${p.resumen}`);
@@ -379,7 +379,7 @@ async function processMessage(phone, input) {
   if (profile) {
     contextualPrompt +=
       '\n\nPERFIL DEL CLIENTE (memoria de interacciones previas; usalo para personalizar el trato, ' +
-      'saludarlo por su nombre, recordar su vehículo y ADAPTAR TU TONO al de él):\n' +
+      'saludarlo por su nombre, recordar su pedido y ADAPTAR TU TONO al de él):\n' +
       formatClientProfile(profile);
   }
 
@@ -418,7 +418,7 @@ async function processMessage(phone, input) {
     { role: 'assistant', content: botReply },
   ];
 
-  saveConversationState(phone, updatedHistory, state.step, state.car_info, false);
+  saveConversationState(phone, updatedHistory, state.step, state.detail, false);
 
   // Actualizar el perfil del cliente en segundo plano (no bloquea la respuesta)
   maybeUpdateClientProfile(phone, updatedHistory).catch(() => {});

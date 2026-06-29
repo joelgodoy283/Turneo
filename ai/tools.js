@@ -29,7 +29,7 @@ const TOOL_DEFINITIONS = [
     type: 'function',
     function: {
       name: 'create_appointment',
-      description: 'Crea un turno en el calendario del negocio. Úsala solo cuando el cliente confirmó todos sus datos (nombre, auto, problema) y eligió fecha y hora.',
+      description: 'Crea un turno en el calendario del negocio. Úsala solo cuando el cliente confirmó todos sus datos (nombre y detalle del pedido) y eligió fecha y hora.',
       parameters: {
         type: 'object',
         properties: {
@@ -37,9 +37,9 @@ const TOOL_DEFINITIONS = [
             type: 'string',
             description: 'Nombre completo del cliente',
           },
-          car_info: {
+          detail: {
             type: 'string',
-            description: 'Descripción del vehículo: marca, modelo, año y problema. Ejemplo: "Ford Focus 2018 - Cambio de pastillas de freno"',
+            description: 'Descripción del pedido: marca, modelo, año y problema. Ejemplo: "Ford Focus 2018 - Cambio de pastillas de freno"',
           },
           date: {
             type: 'string',
@@ -58,7 +58,7 @@ const TOOL_DEFINITIONS = [
             description: 'NO completar: el sistema adjunta automáticamente el número de WhatsApp del cliente. Dejalo vacío.',
           },
         },
-        required: ['client_name', 'car_info', 'date', 'start_time', 'end_time'],
+        required: ['client_name', 'detail', 'date', 'start_time', 'end_time'],
       },
     },
   },
@@ -97,7 +97,7 @@ async function executeTool(toolName, args, clientPhone) {
     if (toolName === 'create_appointment') {
       const result = await createAppointment({
         client_name:  args.client_name,
-        car_info:     args.car_info,
+        detail:     args.detail,
         date:         args.date,
         start_time:   args.start_time,
         end_time:     args.end_time,

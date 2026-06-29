@@ -36,7 +36,7 @@ async function getAvailability(dateStr) {
 }
 
 /**
- * Crea un turno. data: { client_phone, client_name, car_info, service, date,
+ * Crea un turno. data: { client_phone, client_name, detail, service, date,
  * start_time, end_time? }. Inserta en la DB (fuente de verdad), espeja en
  * Google si está configurado, y avisa al dueño.
  */
@@ -44,7 +44,7 @@ async function createAppointment(data) {
   const res = await local.createAppointment({
     client_phone: data.client_phone,
     client_name: data.client_name,
-    car_info: data.car_info,
+    detail: data.detail,
     service: data.service,
     date: data.date,
     start_time: data.start_time,
@@ -56,9 +56,9 @@ async function createAppointment(data) {
   if (usingGoogle() && data.start_time) {
     try {
       const ev = await google.createAppointment({
-        summary: `Turno: ${data.client_name || ''} - ${data.car_info || ''}`,
+        summary: `Turno: ${data.client_name || ''} - ${data.detail || ''}`,
         description:
-          `Cliente: ${data.client_name || ''}\nVehículo: ${data.car_info || ''}` +
+          `Cliente: ${data.client_name || ''}\nDetalle: ${data.detail || ''}` +
           (data.service ? `\nServicio: ${data.service}` : ''),
         dateStr: data.date,
         startTime: data.start_time,
@@ -78,7 +78,7 @@ async function createAppointment(data) {
     const ownerMsg =
       `🗓️ *Nuevo turno agendado*\n` +
       `Cliente: ${data.client_name || '—'}\n` +
-      `Vehículo: ${data.car_info || '—'}\n` +
+      `Detalle: ${data.detail || '—'}\n` +
       (data.service ? `Servicio: ${data.service}\n` : '') +
       `Día: ${data.date}${data.start_time ? ` a las ${data.start_time} hs` : ''}\n` +
       `Tel: ${tel}`;
@@ -112,8 +112,8 @@ async function rescheduleAppointment(id, newDate, newTime) {
   if (usingGoogle() && time) {
     try {
       const ev = await google.createAppointment({
-        summary: `Turno: ${appt.client_name || ''} - ${appt.car_info || ''}`,
-        description: `Cliente: ${appt.client_name || ''}\nVehículo: ${appt.car_info || ''}`,
+        summary: `Turno: ${appt.client_name || ''} - ${appt.detail || ''}`,
+        description: `Cliente: ${appt.client_name || ''}\nDetalle: ${appt.detail || ''}`,
         dateStr: date,
         startTime: time,
         endTime: addOneHour(time),

@@ -143,7 +143,7 @@ async function initDB() {
       phone      TEXT PRIMARY KEY,
       history    TEXT DEFAULT '[]',
       step       TEXT DEFAULT 'initial',
-      car_info   TEXT DEFAULT '{}',
+      detail   TEXT DEFAULT '{}',
       is_new     INTEGER DEFAULT 1,
       updated_at TEXT DEFAULT (datetime('now'))
     );
@@ -175,7 +175,7 @@ async function initDB() {
       id                   INTEGER PRIMARY KEY AUTOINCREMENT,
       client_phone         TEXT NOT NULL,
       client_name          TEXT DEFAULT '',
-      car_info             TEXT DEFAULT '',
+      detail             TEXT DEFAULT '',
       service              TEXT DEFAULT '',
       date                 TEXT NOT NULL,            -- YYYY-MM-DD del turno (entrega)
       time                 TEXT DEFAULT '',          -- HH:MM de entrega
@@ -183,7 +183,7 @@ async function initDB() {
       source               TEXT DEFAULT 'local',     -- local|google
       google_event_id      TEXT DEFAULT '',
       estimated_finish     TEXT DEFAULT '',          -- HH:MM estimada de fin (la indica el dueño)
-      ready_date           TEXT DEFAULT '',          -- YYYY-MM-DD en que el auto queda listo (ajustable por el dueño)
+      ready_date           TEXT DEFAULT '',          -- YYYY-MM-DD en que el pedido queda listo (ajustable por el dueño)
       finished_at          TEXT DEFAULT '',          -- timestamp ISO cuando el dueño confirmó fin (el dueño)
       reminder_sent        INTEGER DEFAULT 0,        -- recordatorio 24h al cliente
       finish_check_sent    INTEGER DEFAULT 0,        -- ya se le preguntó al dueño si terminó
@@ -329,29 +329,29 @@ function isPaused(phone) {
 
 function getConversationState(phone) {
   const row = queryOne('SELECT * FROM conversation_state WHERE phone = ?', [phone]);
-  if (!row) return { phone, history: [], step: 'initial', car_info: {}, is_new: true };
+  if (!row) return { phone, history: [], step: 'initial', detail: {}, is_new: true };
   return {
     ...row,
     history:  JSON.parse(row.history  || '[]'),
-    car_info: JSON.parse(row.car_info || '{}'),
+    detail: JSON.parse(row.detail || '{}'),
     is_new:   row.is_new === 1 || row.is_new === true,
   };
 }
 
-function saveConversationState(phone, history, step, car_info, is_new) {
+function saveConversationState(phone, history, step, detail, is_new) {
   const historyJson  = JSON.stringify(history);
-  const carInfoJson  = JSON.stringify(car_info);
+  const carInfoJson  = JSON.stringify(detail);
   const isNewInt     = is_new ? 1 : 0;
 
   const existing = queryOne('SELECT phone FROM conversation_state WHERE phone = ?', [phone]);
   if (existing) {
     run(
-      "UPDATE conversation_state SET history=?, step=?, car_info=?, is_new=?, updated_at=datetime('now') WHERE phone=?",
+      "UPDATE conversation_state SET history=?, step=?, detail=?, is_new=?, updated_at=datetime('now') WHERE phone=?",
       [historyJson, step, carInfoJson, isNewInt, phone]
     );
   } else {
     run(
-      'INSERT INTO conversation_state (phone, history, step, car_info, is_new) VALUES (?, ?, ?, ?, ?)',
+      'INSERT INTO conversation_state (phone, history, step, detail, is_new) VALUES (?, ?, ?, ?, ?)',
       [phone, historyJson, step, carInfoJson, isNewInt]
     );
   }
@@ -388,16 +388,16 @@ const OCCUPYING_STATUSES = ['scheduled', 'attended', 'in_progress', 'finished', 
 
 /** Crea un turno y devuelve la fila insertada (con su id). */
 function createAppointment({
-  client_phone, client_name = '', car_info = '', service = '',
+  client_phone, client_name = '', detail = '', service = '',
   date, time = '', source = 'local', google_event_id = '',
 }) {
   // OJO: saveDB() (db.export()) resetea last_insert_rowid(), por eso insertamos
   // con db.run y leemos el id ANTES de persistir.
   db.run(
     `INSERT INTO appointments
-       (client_phone, client_name, car_info, service, date, time, source, google_event_id)
+       (client_phone, client_name, detail, service, date, time, source, google_event_id)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-    [normalizePhone(client_phone), client_name, car_info, service, date, time, source, google_event_id]
+    [normalizePhone(client_phone), client_name, detail, service, date, time, source, google_event_id]
   );
   const { id } = queryOne('SELECT last_insert_rowid() AS id');
   saveDB();
@@ -461,7 +461,7 @@ function getActiveAppointmentsByPhone(phone) {
 }
 
 /**
- * Busca turnos por texto libre en nombre, teléfono, vehículo/patente o servicio.
+ * Busca turnos por texto libre en nombre, teléfono, pedido/patente o servicio.
  * Devuelve los más recientes primero. `limit` acota el resultado.
  */
 function searchAppointments(query, limit = 20) {
@@ -470,7 +470,7 @@ function searchAppointments(query, limit = 20) {
   const phoneLike = digits ? `%${digits}%` : '% %'; // si no hay dígitos, no matchea por teléfono
   return queryAll(
     `SELECT * FROM appointments
-       WHERE client_name LIKE ? OR car_info LIKE ? OR service LIKE ? OR client_phone LIKE ?
+       WHERE client_name LIKE ? OR detail LIKE ? OR service LIKE ? OR client_phone LIKE ?
        ORDER BY date DESC, time DESC
        LIMIT ${parseInt(limit)}`,
     [q, q, q, phoneLike]
@@ -510,7 +510,7 @@ function getReviewFallbackPending() {
 /** Actualiza campos arbitrarios de un turno. Solo se permiten columnas conocidas. */
 function updateAppointment(id, fields = {}) {
   const allowed = [
-    'client_name', 'car_info', 'service', 'date', 'time', 'status', 'source',
+    'client_name', 'detail', 'service', 'date', 'time', 'status', 'source',
     'google_event_id', 'estimated_finish', 'ready_date', 'finished_at',
     'reminder_sent', 'finish_check_sent', 'pickup_notified',
     'review_requested', 'review_requested_at', 'review_fallback_sent', 'review_rating', 'review_done',

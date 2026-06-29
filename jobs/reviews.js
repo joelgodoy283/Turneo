@@ -1,7 +1,7 @@
 /**
  * jobs/reviews.js — Pedido de reseña post-servicio.
  *
- * 1) 10:00 ART: a los vehículos que quedaron listos AYER (status terminado), se
+ * 1) 10:00 ART: a los pedidos que quedaron listos AYER (status terminado), se
  *    les pide al cliente una reseña en Google (config `google_review_url`).
  * 2) Fallback (poller c/30'): si pasaron ~5 hs del pedido y el cliente no
  *    respondió, se le manda la pregunta del 1 al 10.
@@ -20,7 +20,7 @@ const FALLBACK_HOURS = 5;
 function googleReviewText(appt, url) {
   return (
     `🙌 ¡Gracias por elegir *${getBusinessName()}*${appt.client_name ? ', ' + appt.client_name : ''}! ` +
-    `Esperamos que tu ${appt.car_info || 'vehículo'} haya quedado perfecto.\n` +
+    `Esperamos que tu ${appt.detail || 'pedido'} haya quedado perfecto.\n` +
     `¿Nos dejarías una reseña en Google? Nos ayuda muchísimo a seguir creciendo 🙏\n${url}`
   );
 }
@@ -44,7 +44,7 @@ async function sendReviewRequests({ force = false } = {}) {
   if (!force && getConfig('review_enabled') !== 'true') {
     return { ok: false, sent: 0, reason: 'Los pedidos de reseña están desactivados.' };
   }
-  // Vehículos listos ayer → reseña hoy (día siguiente al servicio).
+  // Detalles listos ayer → reseña hoy (día siguiente al servicio).
   const reviewDate = local.addDays(local.todayAR(), -1);
   const appts = getAppointmentsForReview(reviewDate);
   if (!appts.length) return { ok: true, sent: 0, reason: 'No hay servicios para pedir reseña hoy.' };

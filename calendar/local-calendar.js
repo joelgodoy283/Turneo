@@ -1,9 +1,9 @@
 /**
  * calendar/local-calendar.js — Sistema propio de turnos (sin Google Calendar).
  *
- * Modelo del negocio: cada turno es un cupo de ENTREGA a la mañana (el auto
+ * Modelo del negocio: cada turno es un cupo de ENTREGA a la mañana (el pedido
  * queda el día). La disponibilidad se rige por:
- *   - cal_capacity_per_day : cuántos autos se atienden por día (default 3)
+ *   - cal_capacity_per_day : cuántos pedidos se atienden por día (default 3)
  *   - cal_slots            : horarios de entrega ofrecidos (default 08:00,08:30,09:00)
  *   - cal_workdays         : días laborables, 0=Dom ... 6=Sáb (default Lun-Sáb)
  * Todo configurable por el dueño desde el dashboard.
@@ -122,7 +122,7 @@ async function getAvailability(dateStr) {
  * Devuelve { success, appointmentId?, appointment?, message }.
  */
 async function createAppointment({
-  client_phone, client_name = '', car_info = '', service = '',
+  client_phone, client_name = '', detail = '', service = '',
   date, start_time, source = 'local', google_event_id = '',
 }) {
   if (!isWorkday(date)) {
@@ -137,7 +137,7 @@ async function createAppointment({
   }
 
   const appt = dbCreateAppointment({
-    client_phone, client_name, car_info, service,
+    client_phone, client_name, detail, service,
     date, time: start_time || '', source, google_event_id,
   });
 

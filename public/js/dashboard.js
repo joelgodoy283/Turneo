@@ -152,7 +152,7 @@ async function loadHome() {
       <div class="home-appt-time">${a.time || '—'}</div>
       <div class="home-appt-main">
         <strong>${escapeHtml(a.client_name || formatPhone(a.client_phone))}</strong>
-        <span>${escapeHtml(a.car_info || '')}${a.service ? ' · ' + escapeHtml(a.service) : ''}</span>
+        <span>${escapeHtml(a.detail || '')}${a.service ? ' · ' + escapeHtml(a.service) : ''}</span>
       </div>
       <span class="badge ${homeStatusClass(a.status)}">${homeStatusLabel(a.status)}</span>
     </div>`).join('');
@@ -840,7 +840,7 @@ async function loadAppointments() {
         <td>${escapeHtml(a.date)}</td>
         <td>${escapeHtml(a.time || '—')}</td>
         <td>${escapeHtml(a.client_name || formatPhone(a.client_phone))}</td>
-        <td>${escapeHtml(a.car_info || '')}</td>
+        <td>${escapeHtml(a.detail || '')}</td>
         <td>${escapeHtml(a.service || '')}</td>
         <td><span class="badge ${st.c}">${st.t}</span></td>
         <td>${nota}</td>

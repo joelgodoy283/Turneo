@@ -34,7 +34,7 @@ function appointmentsBlock(dateStr) {
   if (!appts.length) return '📋 *Turnos de hoy:* no hay turnos agendados.';
   const lines = appts.map((a) => {
     const hora = a.time || '—';
-    const veh = a.car_info ? ` (${a.car_info})` : '';
+    const veh = a.detail ? ` (${a.detail})` : '';
     const serv = a.service ? ` · ${a.service}` : '';
     return `• ${hora} — ${a.client_name || a.client_phone}${veh}${serv}`;
   });

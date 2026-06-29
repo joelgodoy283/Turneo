@@ -299,7 +299,7 @@ async function extractContent(msg) {
 /** Mensaje guía cuando llega un medio que no podemos procesar (sin texto). */
 function unsupportedMediaReply(content) {
   if (content.unsupported === 'video') {
-    return '🎬 Por ahora no puedo ver videos. Si es por un problema del vehículo, contámelo por texto o mandame una *foto* y una *nota de voz*. 🙌';
+    return '🎬 Por ahora no puedo ver videos. Si es por un problema del pedido, contámelo por texto o mandame una *foto* y una *nota de voz*. 🙌';
   }
   if (content.unsupported) {
     return `No puedo abrir ese tipo de archivo (${content.unsupported}). ¿Me lo contás por texto, una foto o un audio?`;
