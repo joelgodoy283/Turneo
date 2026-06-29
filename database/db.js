@@ -242,6 +242,17 @@ function getBusinessName() {
   return (getConfig('business_name') || '').trim() || 'Turneo';
 }
 
+/**
+ * Contraseña efectiva del panel. Prioridad:
+ *   1. config `dashboard_password` (la que cambió el cliente desde el panel)
+ *   2. ENV DASHBOARD_PASSWORD (la inicial que dejamos nosotros)
+ *   3. 'lc2024' (último fallback)
+ * Queda guardada en la DB (carpeta data/), así que el proveedor puede recuperarla.
+ */
+function getDashboardPassword() {
+  return getConfig('dashboard_password') || process.env.DASHBOARD_PASSWORD || 'lc2024';
+}
+
 function setConfig(key, value) {
   const existing = queryOne('SELECT key FROM config WHERE key = ?', [key]);
   if (existing) {
@@ -467,7 +478,7 @@ function getActiveAppointmentsByPhone(phone) {
 function searchAppointments(query, limit = 20) {
   const q = `%${String(query || '').trim()}%`;
   const digits = normalizePhone(query);
-  const phoneLike = digits ? `%${digits}%` : '% %'; // si no hay dígitos, no matchea por teléfono
+  const phoneLike = digits ? `%${digits}%` : '__no_phone__'; // si no hay dígitos, no matchea por teléfono
   return queryAll(
     `SELECT * FROM appointments
        WHERE client_name LIKE ? OR detail LIKE ? OR service LIKE ? OR client_phone LIKE ?
@@ -605,7 +616,7 @@ function normalizePhone(jidOrNumber) {
 module.exports = {
   DEFAULT_PROMPT,
   initDB, getDB, saveDB,
-  getConfig, setConfig, getBusinessName,
+  getConfig, setConfig, getBusinessName, getDashboardPassword,
   saveMessage, getMessages, getMessagesSince, getMessagesBetween, getRecentChats,
   pauseContact, resumeContact, isPaused,
   getConversationState, saveConversationState,

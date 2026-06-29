@@ -406,6 +406,33 @@
         </ul>
       </div>
     </div>
+
+    <div class="card mt-4">
+      <div class="card-body">
+        <h3>🔒 Contraseña del panel</h3>
+        <p style="color:var(--text-muted);font-size:14px;margin:8px 0 16px;">
+          Cambiá la contraseña con la que entrás a este panel.
+        </p>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="pwd-current">Contraseña actual</label>
+            <input type="password" id="pwd-current" placeholder="••••••••">
+          </div>
+          <div class="form-group">
+            <label for="pwd-new">Nueva contraseña</label>
+            <input type="password" id="pwd-new" placeholder="Mínimo 4 caracteres">
+          </div>
+          <div class="form-group">
+            <label for="pwd-confirm">Repetir nueva contraseña</label>
+            <input type="password" id="pwd-confirm" placeholder="••••••••">
+          </div>
+        </div>
+        <div class="form-actions" style="margin-top:16px;">
+          <button id="btn-save-password" class="btn btn-primary">🔒 Cambiar contraseña</button>
+          <span id="password-save-status" class="save-status"></span>
+        </div>
+      </div>
+    </div>
   </section>
 
   <!-- ── TAB: Turnos / Calendar ─────────────────────── -->

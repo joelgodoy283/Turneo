@@ -843,6 +843,32 @@ async function apiFetch(url, options = {}) {
   }
 }
 
+// ─── CAMBIAR CONTRASEÑA DEL PANEL ────────────────────
+document.getElementById('btn-save-password')?.addEventListener('click', async () => {
+  const current = document.getElementById('pwd-current').value;
+  const next    = document.getElementById('pwd-new').value;
+  const confirm = document.getElementById('pwd-confirm').value;
+  const status  = document.getElementById('password-save-status');
+
+  if (!current || !next) { showToast('Completá la contraseña actual y la nueva', 'error'); return; }
+  if (next !== confirm)  { showToast('La nueva contraseña y su repetición no coinciden', 'error'); return; }
+
+  const res = await apiFetch('/api/auth/password', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ current, next }),
+  });
+  if (!res) return;
+  const data = await res.json().catch(() => ({}));
+  if (res.ok && data.success) {
+    if (status) { status.textContent = '✓ Contraseña actualizada'; setTimeout(() => status.textContent = '', 3000); }
+    showToast('✅ Contraseña cambiada', 'success');
+    ['pwd-current', 'pwd-new', 'pwd-confirm'].forEach(id => document.getElementById(id).value = '');
+  } else {
+    showToast('❌ ' + (data.error || 'No se pudo cambiar la contraseña'), 'error');
+  }
+});
+
 // ─── UTILS ───────────────────────────────────────────
 function formatPhone(jid) {
   if (!jid) return '';

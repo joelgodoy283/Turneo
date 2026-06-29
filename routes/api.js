@@ -3,7 +3,7 @@ const router = express.Router();
 const fs = require('fs');
 const path = require('path');
 const {
-  getConfig, setConfig,
+  getConfig, setConfig, getDashboardPassword,
   getMessages, getRecentChats,
   pauseContact, resumeContact, isPaused,
   getServices, addService, updateService, deleteService,
@@ -255,11 +255,26 @@ router.post('/turnos/test-reminders', requireApiAuth, async (req, res) => {
 // ─── Auth API ───────────────────────────────────────────────────────────────
 router.post('/auth/login', (req, res) => {
   const { password } = req.body;
-  if (password === DASHBOARD_PASSWORD) {
+  if (password === getDashboardPassword()) {
     req.session.authenticated = true;
     return res.json({ success: true });
   }
   res.status(401).json({ error: 'Contraseña incorrecta' });
+});
+
+// Cambiar la contraseña del panel (requiere estar logueado + la contraseña actual).
+// Se guarda en la DB (config `dashboard_password`), que vive en la carpeta data/.
+router.post('/auth/password', requireApiAuth, (req, res) => {
+  const { current, next } = req.body;
+  if (current !== getDashboardPassword()) {
+    return res.status(401).json({ error: 'La contraseña actual no es correcta.' });
+  }
+  const clean = String(next || '').trim();
+  if (clean.length < 4) {
+    return res.status(400).json({ error: 'La nueva contraseña debe tener al menos 4 caracteres.' });
+  }
+  setConfig('dashboard_password', clean);
+  res.json({ success: true });
 });
 
 module.exports = router;

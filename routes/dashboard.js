@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
-
-const DASHBOARD_PASSWORD = process.env.DASHBOARD_PASSWORD || 'lc2024';
+const { getDashboardPassword } = require('../database/db');
 
 // ─── Middleware de autenticación ───────────────────────────────────────────
 function requireAuth(req, res, next) {
@@ -17,7 +16,7 @@ router.get('/login', (req, res) => {
 
 router.post('/login', (req, res) => {
   const { password } = req.body;
-  if (password === DASHBOARD_PASSWORD) {
+  if (password === getDashboardPassword()) {
     req.session.authenticated = true;
     return res.redirect('/');
   }
