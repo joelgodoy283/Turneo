@@ -21,6 +21,7 @@ const { sendReminders } = require('../jobs/reminders');
 
 // Claves de configuración de turnos/avisos editables desde el dashboard.
 const TURNOS_KEYS = [
+  'business_name', 'business_address',
   'owner_number', 'cal_capacity_per_day', 'cal_slots', 'cal_workdays', 'google_review_url',
   'morning_summary_enabled', 'checkin_enabled', 'reminder_enabled', 'review_enabled',
 ];

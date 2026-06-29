@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Turneo — Turnos por WhatsApp para tu negocio</title>
-  <meta name="description" content="Turneo gestiona los turnos de tu negocio por WhatsApp con un asistente de IA. Agenda, recordatorios y resúmenes automáticos. Sin depender del panel.">
+  <title>Turneo — Cómo funciona / Guía rápida</title>
+  <meta name="description" content="Guía rápida de Turneo: conectá tu WhatsApp, cargá tu negocio y dejá que el asistente con IA atienda y agende turnos por vos.">
   <style>
     :root{
       --ink:#0f172a; --muted:#64748b; --line:#e8edf3; --bg:#ffffff;
@@ -12,68 +12,70 @@
     }
     *{box-sizing:border-box;margin:0;padding:0}
     html{scroll-behavior:smooth}
-    body{
-      font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
-      color:var(--ink);background:var(--bg);line-height:1.55;-webkit-font-smoothing:antialiased;
-    }
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:var(--ink);background:var(--bg);line-height:1.6;-webkit-font-smoothing:antialiased}
     a{color:inherit;text-decoration:none}
-    .wrap{max-width:1080px;margin:0 auto;padding:0 24px}
+    .wrap{max-width:920px;margin:0 auto;padding:0 22px}
 
-    /* Nav */
-    header{position:sticky;top:0;z-index:10;background:rgba(255,255,255,.85);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
-    .nav{display:flex;align-items:center;justify-content:space-between;height:64px}
+    header{position:sticky;top:0;z-index:10;background:rgba(255,255,255,.9);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+    .nav{display:flex;align-items:center;justify-content:space-between;height:62px}
     .brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:20px;letter-spacing:-.3px}
     .logo{width:30px;height:30px;border-radius:9px;background:var(--brand);display:grid;place-items:center;color:#fff;font-size:16px}
-    .nav-links{display:flex;align-items:center;gap:8px}
     .btn{display:inline-flex;align-items:center;gap:8px;border-radius:999px;padding:10px 18px;font-weight:600;font-size:15px;border:1px solid transparent;cursor:pointer;transition:.15s}
     .btn-primary{background:var(--brand);color:#fff}
     .btn-primary:hover{background:var(--brand-ink)}
     .btn-ghost{background:transparent;color:var(--ink);border-color:var(--line)}
     .btn-ghost:hover{background:var(--soft)}
 
-    /* Hero */
-    .hero{padding:88px 0 64px;text-align:center}
-    .pill{display:inline-flex;align-items:center;gap:8px;background:var(--soft);border:1px solid var(--line);color:var(--muted);
-      font-size:13px;font-weight:600;padding:6px 14px;border-radius:999px;margin-bottom:26px}
+    .hero{padding:64px 0 28px;text-align:center}
+    .pill{display:inline-flex;align-items:center;gap:8px;background:var(--soft);border:1px solid var(--line);color:var(--muted);font-size:13px;font-weight:600;padding:6px 14px;border-radius:999px;margin-bottom:22px}
     .pill .dot{width:8px;height:8px;border-radius:50%;background:var(--brand)}
-    h1{font-size:clamp(34px,5.5vw,58px);line-height:1.05;letter-spacing:-1.5px;font-weight:850}
+    h1{font-size:clamp(30px,5vw,46px);line-height:1.1;letter-spacing:-1.2px;font-weight:850}
     h1 .accent{color:var(--brand)}
-    .sub{max-width:620px;margin:22px auto 34px;color:var(--muted);font-size:clamp(16px,2.2vw,20px)}
+    .sub{max-width:640px;margin:18px auto 26px;color:var(--muted);font-size:clamp(16px,2vw,19px)}
     .cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
-    .micro{margin-top:18px;color:var(--muted);font-size:13px}
 
-    /* Mock */
-    .mock{margin:56px auto 0;max-width:420px;background:var(--soft);border:1px solid var(--line);border-radius:22px;padding:18px;box-shadow:0 30px 60px -30px rgba(15,23,42,.25)}
-    .mock-head{display:flex;align-items:center;gap:8px;color:var(--brand-ink);font-weight:700;font-size:14px;margin-bottom:14px}
-    .bubble{background:#fff;border:1px solid var(--line);border-radius:14px;padding:11px 14px;font-size:14px;margin-bottom:10px;max-width:85%}
+    section{padding:34px 0}
+    .sec-title{font-size:24px;letter-spacing:-.6px;font-weight:800;margin-bottom:6px}
+    .sec-intro{color:var(--muted);margin-bottom:22px}
+
+    /* Pasos numerados */
+    .steps{display:flex;flex-direction:column;gap:14px;counter-reset:s}
+    .step{display:flex;gap:16px;background:var(--soft);border:1px solid var(--line);border-radius:var(--radius);padding:20px 22px}
+    .step .num{counter-increment:s;flex:0 0 36px;height:36px;border-radius:50%;background:var(--brand);color:#fff;display:grid;place-items:center;font-weight:800;font-size:16px}
+    .step .num::before{content:counter(s)}
+    .step h3{font-size:17px;margin-bottom:4px;letter-spacing:-.2px}
+    .step p{color:var(--muted);font-size:15px}
+    .step code{background:#fff;border:1px solid var(--line);border-radius:6px;padding:1px 6px;font-size:13px;color:var(--brand-ink)}
+
+    /* Tarjetas de capacidades */
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-top:6px}
+    .card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:22px}
+    .card .ic{width:40px;height:40px;border-radius:11px;background:var(--soft);display:grid;place-items:center;font-size:20px;margin-bottom:12px}
+    .card h3{font-size:16px;margin-bottom:4px}
+    .card p{color:var(--muted);font-size:14px}
+
+    /* Ejemplos de comandos */
+    .cmds{background:var(--ink);border-radius:var(--radius);padding:24px;color:#e2e8f0}
+    .cmds h3{color:#fff;font-size:16px;margin-bottom:14px}
+    .cmd{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.08);font-size:14.5px}
+    .cmd:last-child{border-bottom:0}
+    .cmd .q{color:#7dd3a0;font-weight:600;white-space:nowrap}
+    .cmd .d{color:#94a3b8}
+
+    /* Chat de ejemplo */
+    .mock{max-width:430px;margin:8px auto 0;background:var(--soft);border:1px solid var(--line);border-radius:20px;padding:16px}
+    .mock-head{display:flex;align-items:center;gap:8px;color:var(--brand-ink);font-weight:700;font-size:13px;margin-bottom:12px}
+    .bubble{background:#fff;border:1px solid var(--line);border-radius:13px;padding:10px 13px;font-size:14px;margin-bottom:9px;max-width:85%}
     .bubble.me{background:var(--brand);color:#fff;border-color:transparent;margin-left:auto}
-    .bubble small{display:block;opacity:.6;font-size:11px;margin-top:3px}
 
-    /* Sections */
-    section{padding:64px 0}
-    .eyebrow{text-align:center;color:var(--brand);font-weight:700;font-size:13px;letter-spacing:1px;text-transform:uppercase}
-    h2{text-align:center;font-size:clamp(26px,4vw,38px);letter-spacing:-1px;font-weight:800;margin:10px 0 8px}
-    .lead{text-align:center;color:var(--muted);max-width:560px;margin:0 auto 44px}
-    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:18px}
-    .card{background:var(--bg);border:1px solid var(--line);border-radius:var(--radius);padding:26px;transition:.15s}
-    .card:hover{box-shadow:0 18px 40px -28px rgba(15,23,42,.35);transform:translateY(-2px)}
-    .ic{width:44px;height:44px;border-radius:12px;background:var(--soft);display:grid;place-items:center;font-size:22px;margin-bottom:16px}
-    .card h3{font-size:18px;margin-bottom:6px;letter-spacing:-.3px}
-    .card p{color:var(--muted);font-size:15px}
+    .note{background:#fffbeb;border:1px solid #fde68a;border-radius:12px;padding:14px 16px;color:#92660a;font-size:14px;margin-top:16px}
 
-    .steps{counter-reset:s;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px}
-    .step{position:relative;padding:26px;border:1px solid var(--line);border-radius:var(--radius);background:var(--soft)}
-    .step::before{counter-increment:s;content:counter(s);position:absolute;top:-14px;left:24px;width:30px;height:30px;border-radius:50%;background:var(--brand);color:#fff;display:grid;place-items:center;font-weight:800;font-size:15px}
-    .step h3{margin:8px 0 6px;font-size:17px}
-    .step p{color:var(--muted);font-size:14px}
+    .cta-band{background:var(--ink);color:#fff;border-radius:22px;padding:46px 28px;text-align:center;margin:18px 0}
+    .cta-band h2{color:#fff;font-size:26px;letter-spacing:-.6px}
+    .cta-band p{color:#cbd5e1;max-width:520px;margin:8px auto 24px}
 
-    .cta-band{background:var(--ink);color:#fff;border-radius:24px;padding:54px 32px;text-align:center;margin:24px 0}
-    .cta-band h2{color:#fff}
-    .cta-band p{color:#cbd5e1;max-width:520px;margin:8px auto 28px}
-
-    footer{border-top:1px solid var(--line);padding:32px 0;color:var(--muted);font-size:14px}
-    .foot{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
-    @media(max-width:560px){.nav-links .hide-sm{display:none}.hero{padding:60px 0 40px}}
+    footer{border-top:1px solid var(--line);padding:28px 0;color:var(--muted);font-size:14px;text-align:center}
+    @media(max-width:560px){.nav .hide-sm{display:none}}
   </style>
 </head>
 <body>
@@ -81,81 +83,119 @@
   <header>
     <div class="wrap nav">
       <a class="brand" href="/"><span class="logo">📅</span> Turneo</a>
-      <nav class="nav-links">
-        <a class="btn btn-ghost hide-sm" href="#features">Cómo funciona</a>
-        <a class="btn btn-primary" href="/login">Entrar al panel</a>
-      </nav>
+      <a class="btn btn-primary" href="/login">Entrar al panel</a>
     </div>
   </header>
 
   <main>
     <!-- HERO -->
     <div class="wrap hero">
-      <span class="pill"><span class="dot"></span> Pensado WhatsApp-first</span>
-      <h1>Turnos por <span class="accent">WhatsApp</span><br>para tu negocio</h1>
+      <span class="pill"><span class="dot"></span> Guía rápida</span>
+      <h1>Tu asistente que <span class="accent">atiende y agenda</span> por WhatsApp</h1>
       <p class="sub">
-        Un asistente de IA que atiende a tus clientes, agenda turnos y te deja
-        manejar todo el día a día desde WhatsApp. El panel web queda solo para lo
-        avanzado.
+        Turneo responde a tus clientes, agenda turnos y te avisa — solo, las 24 horas.
+        En esta guía te explicamos, paso a paso, cómo ponerlo en marcha y usarlo. Es simple.
       </p>
       <div class="cta">
-        <a class="btn btn-primary" href="/login">Entrar al panel →</a>
-        <a class="btn btn-ghost" href="#features">Ver qué hace</a>
-      </div>
-      <p class="micro">Sin apps que instalar para tus clientes · Funciona sobre WhatsApp</p>
-
-      <!-- Mock de chat -->
-      <div class="mock">
-        <div class="mock-head">💬 Conversación de ejemplo</div>
-        <div class="bubble">Hola, ¿tenés lugar para mañana a la mañana?</div>
-        <div class="bubble me">¡Hola! Sí, tengo 08:00, 08:30 y 09:00. ¿Cuál te queda cómodo? <small>Asistente · ahora</small></div>
-        <div class="bubble">A las 9 perfecto 🙌</div>
-        <div class="bubble me">Listo, te agendé para mañana 09:00. ¡Te espero! <small>Turno confirmado</small></div>
+        <a class="btn btn-primary" href="#empezar">Ver cómo empezar ↓</a>
+        <a class="btn btn-ghost" href="/login">Entrar al panel</a>
       </div>
     </div>
 
-    <!-- FEATURES -->
-    <section id="features" class="wrap">
-      <p class="eyebrow">Qué hace</p>
-      <h2>Todo el negocio, desde el chat</h2>
-      <p class="lead">Atiende a tus clientes y te asiste a vos como dueño/encargado, con números autorizados.</p>
+    <!-- QUÉ HACE -->
+    <section class="wrap">
+      <h2 class="sec-title">¿Qué hace Turneo?</h2>
+      <p class="sec-intro">Es un asistente con Inteligencia Artificial conectado a tu WhatsApp. Hace dos cosas:</p>
       <div class="grid">
-        <div class="card"><div class="ic">🤖</div><h3>Asistente con IA</h3><p>Responde consultas, informa servicios y toma turnos solo, 24/7, con tu tono.</p></div>
-        <div class="card"><div class="ic">📅</div><h3>Agenda inteligente</h3><p>Crea, reprograma y cancela turnos. Controla cupos, horarios y días bloqueados.</p></div>
-        <div class="card"><div class="ic">🧑‍💼</div><h3>Vos al mando</h3><p>Desde tu WhatsApp: "ver turnos de hoy", "agendá a Juan mañana 10", "bloqueá el lunes".</p></div>
-        <div class="card"><div class="ic">🔔</div><h3>Avisos automáticos</h3><p>Recordatorios al cliente, resumen del día y pedidos de reseña, sin que muevas un dedo.</p></div>
-        <div class="card"><div class="ic">🎤</div><h3>Audios e imágenes</h3><p>Entiende notas de voz y fotos: el cliente manda una foto del problema y el bot lo capta.</p></div>
-        <div class="card"><div class="ic">📊</div><h3>Números claros</h3><p>Cuántos turnos tenés, qué servicios se piden más y cómo viene la semana.</p></div>
+        <div class="card"><div class="ic">💬</div><h3>Atiende a tus clientes</h3><p>Responde consultas, informa tus servicios, toma turnos, los confirma, reprograma o cancela, y pide reseñas. Si hace falta, te lo deriva a vos.</p></div>
+        <div class="card"><div class="ic">🧑‍💼</div><h3>Te asiste a vos</h3><p>Desde tu propio WhatsApp le pedís cosas en lenguaje normal: "ver turnos de hoy", "agendá a Juan mañana 10", "bloqueá el lunes". Sin entrar al panel.</p></div>
       </div>
     </section>
 
-    <!-- STEPS -->
-    <section class="wrap">
-      <p class="eyebrow">En 3 pasos</p>
-      <h2>Empezar es simple</h2>
-      <p class="lead">Conectás tu WhatsApp y listo: el asistente empieza a atender.</p>
+    <!-- CÓMO EMPEZAR -->
+    <section class="wrap" id="empezar">
+      <h2 class="sec-title">Cómo empezar (3 pasos)</h2>
+      <p class="sec-intro">Se configura una sola vez. No necesitás conocimientos técnicos.</p>
       <div class="steps">
-        <div class="step"><h3>Conectá WhatsApp</h3><p>Escaneás un QR desde el panel y vinculás tu número.</p></div>
-        <div class="step"><h3>Cargá tu negocio</h3><p>Servicios, horarios y tu estilo. El asistente aprende a responder como vos.</p></div>
-        <div class="step"><h3>Operá desde el chat</h3><p>Tus clientes sacan turno y vos gestionás todo por WhatsApp.</p></div>
+        <div class="step">
+          <div class="num"></div>
+          <div>
+            <h3>Conectá tu WhatsApp</h3>
+            <p>Entrá al panel y andá a <strong>Conexión WhatsApp</strong>. Vas a ver un código <strong>QR</strong>. Abrí WhatsApp en tu teléfono → <em>Dispositivos vinculados</em> → <em>Vincular dispositivo</em> y escaneá el QR. Listo: el bot queda conectado a tu número.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="num"></div>
+          <div>
+            <h3>Cargá tu negocio</h3>
+            <p>En <strong>Servicios</strong> cargá lo que ofrecés. En <strong>Configurar IA</strong> ajustá cómo habla el bot (tu tono, tu información). En <strong>Turnos</strong> definís tus horarios, cuántos turnos por día y tus días laborables.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="num"></div>
+          <div>
+            <h3>¡Listo, ya atiende solo!</h3>
+            <p>Desde ese momento, cuando un cliente te escribe, el bot responde y agenda. Vos seguís todo desde el panel o, más cómodo, desde tu propio WhatsApp.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ASÍ LE HABLA A TUS CLIENTES -->
+    <section class="wrap">
+      <h2 class="sec-title">Así atiende a tus clientes</h2>
+      <p class="sec-intro">Un ejemplo de una conversación real que el bot resuelve solo:</p>
+      <div class="mock">
+        <div class="mock-head">💬 Cliente nuevo</div>
+        <div class="bubble">Hola, ¿tenés lugar para mañana a la mañana?</div>
+        <div class="bubble me">¡Hola! Sí, mañana tengo 08:00, 08:30 y 09:00. ¿Cuál te queda cómodo?</div>
+        <div class="bubble">A las 9 👍</div>
+        <div class="bubble me">Genial. ¿Tu nombre y qué necesitás?</div>
+        <div class="bubble">Juan, una consulta general</div>
+        <div class="bubble me">Listo Juan, te agendé para mañana 09:00. ¡Te esperamos! 🙌</div>
+      </div>
+      <div class="note">💡 El bot pide los datos que necesitás, revisa tu disponibilidad real y solo confirma el turno cuando está todo ok. Si no entiende algo o el cliente pide una persona, te lo deriva.</div>
+    </section>
+
+    <!-- VOS DESDE WHATSAPP -->
+    <section class="wrap">
+      <h2 class="sec-title">Manejá todo desde tu WhatsApp</h2>
+      <p class="sec-intro">Desde tu número autorizado, le escribís al bot como a un asistente. Algunos ejemplos:</p>
+      <div class="cmds">
+        <h3>📋 Le escribís…</h3>
+        <div class="cmd"><span class="q">"ver turnos de hoy"</span><span class="d">— te lista quién viene y a qué hora</span></div>
+        <div class="cmd"><span class="q">"agendá a Juan mañana a las 10"</span><span class="d">— crea el turno</span></div>
+        <div class="cmd"><span class="q">"cancelá el turno de Pedro"</span><span class="d">— lo cancela y le avisa al cliente</span></div>
+        <div class="cmd"><span class="q">"qué horarios libres tengo mañana"</span><span class="d">— te muestra los cupos</span></div>
+        <div class="cmd"><span class="q">"bloqueá el lunes"</span><span class="d">— feriado o día que no atendés</span></div>
+        <div class="cmd"><span class="q">"pasame el resumen del día"</span><span class="d">— turnos y quién escribió</span></div>
+      </div>
+      <div class="note">📩 Además, todos los días a la mañana te llega un <strong>resumen automático</strong> con los turnos del día y la actividad. No tenés que entrar a ningún lado.</div>
+    </section>
+
+    <!-- EXTRAS -->
+    <section class="wrap">
+      <h2 class="sec-title">Otras cosas que hace</h2>
+      <div class="grid">
+        <div class="card"><div class="ic">🔔</div><h3>Recordatorios</h3><p>Le recuerda el turno al cliente para que no se olvide.</p></div>
+        <div class="card"><div class="ic">⭐</div><h3>Reseñas</h3><p>Después de atender, le pide al cliente que te deje una reseña.</p></div>
+        <div class="card"><div class="ic">🎤</div><h3>Audios y fotos</h3><p>Entiende notas de voz e imágenes que manden tus clientes.</p></div>
+        <div class="card"><div class="ic">⏸️</div><h3>Modo manual</h3><p>Si querés atender vos a un cliente puntual, pausás el bot para ese chat.</p></div>
       </div>
     </section>
 
     <!-- CTA -->
     <div class="wrap">
       <div class="cta-band">
-        <h2>¿Listo para probarlo?</h2>
-        <p>Entrá al panel, conectá tu WhatsApp y empezá a tomar turnos automáticamente.</p>
+        <h2>¿Empezamos?</h2>
+        <p>Entrá al panel, conectá tu WhatsApp y en minutos tu asistente está atendiendo.</p>
         <a class="btn btn-primary" href="/login">Entrar al panel →</a>
       </div>
     </div>
   </main>
 
   <footer>
-    <div class="wrap foot">
-      <span class="brand" style="font-size:16px"><span class="logo" style="width:24px;height:24px;font-size:13px">📅</span> Turneo</span>
-      <span>© <%= new Date().getFullYear() %> Turneo · Turnos por WhatsApp</span>
-    </div>
+    <div class="wrap">© <%= new Date().getFullYear() %> Turneo · Turnos por WhatsApp</div>
   </footer>
 
 </body>

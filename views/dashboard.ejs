@@ -420,10 +420,22 @@
       <div class="card-body">
         <h3>⚙️ Configuración de turnos y avisos</h3>
         <p style="color:var(--text-muted);font-size:14px;margin:8px 0 20px;">
-          Si Google Calendar está conectado, los turnos también se espejan ahí. Si no, se usa este sistema propio.
+          Definí tu capacidad de turnos por día, los horarios que ofrecés y tus días laborables.
         </p>
 
         <div class="form-grid">
+          <div class="form-group">
+            <label for="cfg-business-name">Nombre del negocio
+              <small class="label-hint">Aparece en los mensajes al cliente (recordatorios, avisos, reseñas).</small>
+            </label>
+            <input type="text" id="cfg-business-name" placeholder="Ej: GOTEO">
+          </div>
+          <div class="form-group">
+            <label for="cfg-business-address">Dirección (opcional)
+              <small class="label-hint">Se incluye en recordatorios y aviso de retiro. Dejala vacía si no aplica.</small>
+            </label>
+            <input type="text" id="cfg-business-address" placeholder="Ej: Av. Siempre Viva 123">
+          </div>
           <div class="form-group">
             <label for="cfg-owner-number">Número del dueño (modo asistente)
               <small class="label-hint">Desde este número, el bot te atiende como tu asistente personal.</small>
@@ -497,65 +509,6 @@
             </tbody>
           </table>
         </div>
-      </div>
-    </div>
-
-    <!-- ── Google Calendar (opcional) ── -->
-    <div class="card mt-4">
-      <div class="card-body">
-        <h3>📅 Google Calendar (opcional)</h3>
-        <p style="color:var(--text-muted);font-size:14px;margin:8px 0 16px;">
-          Conectalo para que los turnos también aparezcan en tu calendario de Google.
-        </p>
-
-    <!-- Estado: no configurado (falta GOOGLE_CLIENT_ID en .env) -->
-    <div id="calendar-no-credentials" class="card" style="display:none">
-      <div class="card-body" style="text-align:center; padding: 48px 24px;">
-        <div style="font-size:48px; margin-bottom:16px;">⚙️</div>
-        <h3 style="margin-bottom:8px;">Configurá las credenciales de Google</h3>
-        <p style="color:var(--text-muted); margin-bottom:24px; max-width:500px; margin-left:auto; margin-right:auto;">
-          Agregá <code style="background:rgba(0,0,0,.3);padding:2px 6px;border-radius:4px;">GOOGLE_CLIENT_ID</code>
-          y <code style="background:rgba(0,0,0,.3);padding:2px 6px;border-radius:4px;">GOOGLE_CLIENT_SECRET</code>
-          en el archivo <code style="background:rgba(0,0,0,.3);padding:2px 6px;border-radius:4px;">.env</code> del servidor.
-        </p>
-      </div>
-    </div>
-
-    <!-- Estado: credenciales OK pero no autenticado → botón Login -->
-    <div id="calendar-not-connected" class="card" style="display:none">
-      <div class="card-body" style="text-align:center; padding: 48px 24px;">
-        <div style="font-size:48px; margin-bottom:16px;">📅</div>
-        <h3 style="margin-bottom:8px;">Conectá tu Google Calendar</h3>
-        <p style="color:var(--text-muted); margin-bottom:32px;">
-          Hacé clic para autorizar el acceso a tu Google Calendar.<br>
-          Solo necesitás hacerlo una vez.
-        </p>
-        <a href="/auth/google" class="btn btn-google">
-          <svg width="20" height="20" viewBox="0 0 48 48" style="flex-shrink:0">
-            <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
-            <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
-            <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
-            <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.36-8.16 2.36-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
-          </svg>
-          Iniciar sesión con Google
-        </a>
-      </div>
-    </div>
-
-    <!-- Estado: conectado → lista de eventos -->
-    <div id="calendar-connected" style="display:none">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-        <span style="color:var(--success); font-size:14px; display:flex; align-items:center; gap:6px;">
-          <span style="width:8px;height:8px;border-radius:50%;background:var(--success);display:inline-block;"></span>
-          Google Calendar conectado
-        </span>
-        <button id="btn-disconnect-google" class="btn btn-sm btn-secondary">Desconectar</button>
-      </div>
-      <div id="calendar-events" class="events-grid">
-        <p class="empty-state">Cargando turnos...</p>
-      </div>
-    </div>
-
       </div>
     </div>
 

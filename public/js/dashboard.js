@@ -27,7 +27,7 @@ function refreshView(tabId) {
     loadChatList();
     if (currentPhone) openChat(currentPhone);
   }
-  if (tabId === 'tab-calendar')  { loadTurnos(); loadCalendar(); }
+  if (tabId === 'tab-calendar')  { loadTurnos(); }
   if (tabId === 'tab-instagram') loadInstagramStatus();
   if (tabId === 'tab-home')      loadHome();
 }
@@ -40,18 +40,6 @@ let pendingMessages = 0;
 // ─── Manejar retorno del OAuth de Google ─────────────
 (function checkOAuthReturn() {
   const params = new URLSearchParams(window.location.search);
-
-  if (params.get('google_success')) {
-    showToast('✅ Google Calendar conectado correctamente', 'success');
-    window.history.replaceState({}, '', '/');
-    activateTab('tab-calendar');
-    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    document.querySelector('[data-tab="tab-calendar"]')?.classList.add('active');
-  }
-  if (params.get('google_error')) {
-    showToast('❌ Error conectando Google: ' + decodeURIComponent(params.get('google_error')), 'message');
-    window.history.replaceState({}, '', '/');
-  }
 
   if (params.get('ig_success')) {
     showToast('✅ Instagram conectado correctamente', 'success');
@@ -89,7 +77,7 @@ function activateTab(tabId) {
 
   if (tabId === 'tab-chats')      loadChatList();
   if (tabId === 'tab-prompt')     { loadPrompt(); loadSummaryConfig(); loadAssistantPrompt(); }
-  if (tabId === 'tab-calendar')   { loadTurnos(); loadCalendar(); }
+  if (tabId === 'tab-calendar')   { loadTurnos(); }
   if (tabId === 'tab-instagram')  loadInstagramStatus();
   if (tabId === 'tab-services')   loadServices();
   if (tabId === 'tab-exceptions') loadExceptions();
@@ -520,65 +508,6 @@ document.getElementById('btn-save-prompt')?.addEventListener('click', async () =
   }
 });
 
-// ─── CALENDARIO ───────────────────────────────────────
-async function loadCalendar() {
-  // Mostrar todos los paneles ocultos primero
-  document.getElementById('calendar-no-credentials').style.display = 'none';
-  document.getElementById('calendar-not-connected').style.display  = 'none';
-  document.getElementById('calendar-connected').style.display      = 'none';
-
-  const statusRes = await apiFetch('/api/google/status');
-  if (!statusRes) return;
-  const { hasCredentials, isConnected } = await statusRes.json();
-
-  if (!hasCredentials) {
-    document.getElementById('calendar-no-credentials').style.display = '';
-    return;
-  }
-
-  if (!isConnected) {
-    document.getElementById('calendar-not-connected').style.display = '';
-    return;
-  }
-
-  // Conectado → mostrar eventos
-  document.getElementById('calendar-connected').style.display = '';
-
-  const eventsRes = await apiFetch('/api/calendar/events');
-  if (!eventsRes) return;
-  const { events, error } = await eventsRes.json();
-
-  const container = document.getElementById('calendar-events');
-
-  if (error) {
-    container.innerHTML = `<p class="empty-state" style="color:var(--danger);">Error: ${escapeHtml(error)}</p>`;
-    return;
-  }
-
-  if (!events?.length) {
-    container.innerHTML = '<p class="empty-state">No hay turnos en los próximos 14 días 🎉</p>';
-    return;
-  }
-
-  container.innerHTML = events.map(event => {
-    const start = event.start.dateTime || event.start.date;
-    const end   = event.end.dateTime   || event.end.date;
-    return `
-      <div class="event-card">
-        <div class="event-card-title">${escapeHtml(event.summary || 'Sin título')}</div>
-        <div class="event-card-time">🕐 ${formatDate(start)} → ${formatDate(end)}</div>
-        ${event.description ? `<div class="event-card-desc">${escapeHtml(event.description.substring(0, 120))}</div>` : ''}
-      </div>`;
-  }).join('');
-}
-
-// Desconectar Google
-document.getElementById('btn-disconnect-google')?.addEventListener('click', async () => {
-  if (!confirm('¿Desconectar Google Calendar? El bot ya no podrá agendar turnos.')) return;
-  await apiFetch('/api/google/disconnect', { method: 'POST' });
-  loadCalendar();
-  showToast('Google Calendar desconectado', 'message');
-});
 
 // ─── BUSCAR EN LISTA DE CHATS ─────────────────────────
 document.getElementById('chat-search')?.addEventListener('input', function () {
@@ -748,6 +677,8 @@ async function loadTurnosConfig() {
   const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v ?? ''; };
   const chk = (id, v) => { const el = document.getElementById(id); if (el) el.checked = v === 'true'; };
 
+  set('cfg-business-name', c.business_name);
+  set('cfg-business-address', c.business_address);
   set('cfg-owner-number', c.owner_number);
   set('cfg-capacity', c.cal_capacity_per_day);
   set('cfg-slots', c.cal_slots);
@@ -770,6 +701,8 @@ document.getElementById('btn-save-turnos')?.addEventListener('click', async () =
     if (document.getElementById('wd-' + d)?.checked) workdays.push(d);
   }
   const body = {
+    business_name: document.getElementById('cfg-business-name').value.trim(),
+    business_address: document.getElementById('cfg-business-address').value.trim(),
     owner_number: document.getElementById('cfg-owner-number').value.trim(),
     cal_capacity_per_day: document.getElementById('cfg-capacity').value.trim() || '3',
     cal_slots: document.getElementById('cfg-slots').value.trim(),
