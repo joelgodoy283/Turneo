@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const {
   getConfig, setConfig, getDashboardPassword,
-  saveMessage, getMessages, getRecentChats,
+  getMessages, getRecentChats,
   pauseContact, resumeContact, isPaused,
   getServices, addService, updateService, deleteService,
   getBlockedContacts, addBlockedContact, removeBlockedContact,
@@ -18,14 +18,12 @@ const local = require('../calendar/local-calendar');
 const { generateAndSend } = require('../jobs/daily-summary');
 const { generateAndSend: morningSummary } = require('../jobs/morning-summary');
 const { sendReminders } = require('../jobs/reminders');
-const { queueFollowup } = require('../jobs/followups');
-const { logMessage, cancelFollowups } = require('../supabase/client');
 
 // Claves de configuración de turnos/avisos editables desde el dashboard.
 const TURNOS_KEYS = [
   'business_name', 'business_address',
   'owner_number', 'cal_capacity_per_day', 'cal_slots', 'cal_workdays', 'google_review_url',
-  'morning_summary_enabled', 'checkin_enabled', 'reminder_enabled', 'review_enabled', 'followup_enabled',
+  'morning_summary_enabled', 'checkin_enabled', 'reminder_enabled', 'review_enabled',
 ];
 
 const TOKEN_PATH = process.env.GOOGLE_TOKEN_PATH || path.join(__dirname, '..', 'token.json');
@@ -67,15 +65,9 @@ router.post('/chats/:phone/send', requireApiAuth, async (req, res) => {
   try {
     if (phone.startsWith('ig:')) {
       await sendInstagramMessage(phone.replace('ig:', ''), text.trim());
-      saveMessage(phone, 'outgoing', text.trim());
-      logMessage(phone, 'outgoing', text.trim());
-      global.io?.emit('chat:new_message', {
-        phone, direction: 'outgoing', content: text.trim(), timestamp: new Date().toISOString(),
-      });
     } else {
       await sendMessage(phone, text.trim());
     }
-    await queueFollowup(phone, text.trim(), 'owner_manual_question');
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -83,9 +75,8 @@ router.post('/chats/:phone/send', requireApiAuth, async (req, res) => {
 });
 
 // ─── Pausa / Reanuda bot por número ───────────────────────────────────────
-router.post('/chats/:phone/pause', requireApiAuth, async (req, res) => {
+router.post('/chats/:phone/pause', requireApiAuth, (req, res) => {
   pauseContact(req.params.phone);
-  await cancelFollowups(req.params.phone, 'paused_by_owner');
   global.io?.emit('chat:paused', { phone: req.params.phone });
   res.json({ success: true, paused: true });
 });

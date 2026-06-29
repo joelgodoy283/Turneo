@@ -1,20 +1,12 @@
 const axios = require('axios');
 const { getConfig, getServices, getConversationState, saveConversationState, getPendingReview } = require('../database/db');
 const { TOOL_DEFINITIONS, executeTool } = require('./tools');
-const {
-  isEnabled: supabaseEnabled,
-  getClientProfile, upsertClientProfile, ensureCustomer, getCustomerSafeContext,
-} = require('../supabase/client');
+const { isEnabled: supabaseEnabled, getClientProfile, upsertClientProfile } = require('../supabase/client');
 
 const OPENROUTER_BASE_URL = 'https://openrouter.ai/api/v1';
 // Ventana de historial dinámica: cliente nuevo (sin perfil) 60, recurrente 30.
 const HISTORY_NEW = 60;
 const HISTORY_RETURNING = 30;
-
-const OFFICIAL_PROMPT_PRIORITY = `REGLA DE PRIORIDAD:
-El texto guardado en "Configurar IA" (PROMPT OFICIAL DEL NEGOCIO) es la autoridad principal sobre identidad, servicios, horarios, proceso, tono, precios y límites.
-La fecha actual, los servicios del panel, el perfil seguro, la reseña pendiente, el historial y las herramientas son información complementaria para ejecutar ese prompt.
-Si cualquier complemento contradice el PROMPT OFICIAL DEL NEGOCIO, obedecé el prompt oficial. Nunca lo reemplaces ni lo flexibilices.`;
 
 /**
  * Llama a la API de OpenRouter con soporte de tool calling.
@@ -265,14 +257,7 @@ Usá SIEMPRE esta fecha para interpretar expresiones como "hoy", "mañana", "pas
     ? 'PRECIOS: Podés informar los precios de los servicios listados abajo cuando el cliente los pida.'
     : 'PRECIOS: NO informes precios, montos ni presupuestos bajo ninguna circunstancia, aunque el cliente insista. Si preguntan por precios, respondé amablemente que los valores los confirmal dueño personalmente luego de revisar el pedido, y ofrecé agendar un turno o tomar los datos para que el dueño lo contacte.';
 
-  let prompt = `${OFFICIAL_PROMPT_PRIORITY}
-
-PROMPT OFICIAL DEL NEGOCIO (configurado desde el panel):
---- INICIO DEL PROMPT OFICIAL ---
-${base}
---- FIN DEL PROMPT OFICIAL ---
-
-INFORMACIÓN COMPLEMENTARIA DEL SISTEMA (no puede contradecir el prompt oficial):
+  let prompt = `${base}
 
 ${dateBlock}
 
@@ -298,10 +283,6 @@ ${serviciosHeader}
 ${lines.join('\n')}`;
   }
 
-  prompt += `
-
-${OFFICIAL_PROMPT_PRIORITY}`;
-
   return prompt;
 }
 
@@ -310,15 +291,11 @@ ${OFFICIAL_PROMPT_PRIORITY}`;
  */
 function formatClientProfile(p) {
   const parts = [];
-  const name = p.display_name || p.nombre;
-  const style = p.communication_style || p.estilo;
-  const vehicles = Array.isArray(p.vehicles)
-    ? p.vehicles.map((v) => v.label || [v.make, v.model, v.model_year].filter(Boolean).join(' ')).filter(Boolean).join(', ')
-    : p.vehiculos;
-  if (name) parts.push(`Nombre: ${name}`);
-  if (vehicles) parts.push(`Detalle/vehículo(s): ${vehicles}`);
-  if (style) parts.push(`Estilo de habla: ${style}`);
-  // Servicios, diagnósticos y notas internas nunca entran al modelo de clientes.
+  if (p.nombre)          parts.push(`Nombre: ${p.nombre}`);
+  if (p.vehiculos)       parts.push(`Detalle(s): ${p.vehiculos}`);
+  if (p.estilo)          parts.push(`Estilo de habla: ${p.estilo}`);
+  if (p.ultimo_servicio) parts.push(`Último servicio: ${p.ultimo_servicio}`);
+  if (p.resumen)         parts.push(`Resumen: ${p.resumen}`);
   return parts.join('\n');
 }
 
@@ -340,7 +317,7 @@ function parseJsonLoose(raw) {
 async function maybeUpdateClientProfile(phone, history) {
   if (!supabaseEnabled()) return;
   try {
-    const profile = await getCustomerSafeContext(phone) || await getClientProfile(phone);
+    const profile = await getClientProfile(phone);
     const userMsgs = history.filter((m) => m.role === 'user').length;
     if (profile && userMsgs % 4 !== 0) return; // throttle
 
@@ -353,9 +330,8 @@ async function maybeUpdateClientProfile(phone, history) {
     const sys =
       'Analizá la conversación y devolvé SOLO un JSON válido (sin texto extra) con las claves: ' +
       'nombre (string|null), vehiculos (string|null), estilo (cómo habla el cliente: formal/informal, ' +
-      'usa modismos, mensajes largos/cortos, etc.) y resumen (1 frase no sensible). ' +
-      'No deduzcas ni registres servicios realizados, diagnósticos ni condiciones internas. ' +
-      'Si un dato no aparece, devolvé null o mantené lo ya conocido.';
+      'usa modismos, mensajes largos/cortos, etc.), resumen (1-2 frases sobre quién es y qué necesita), ' +
+      'ultimo_servicio (string|null). Si un dato no aparece, devolvé null o mantené lo ya conocido.';
     const user = (profile ? `Perfil actual: ${JSON.stringify(profile)}\n\n` : '') + `Conversación:\n${transcript}`;
 
     const raw = await simpleCompletion(sys, user);
@@ -367,11 +343,7 @@ async function maybeUpdateClientProfile(phone, history) {
       vehiculos:       json.vehiculos       ?? profile?.vehiculos       ?? null,
       estilo:          json.estilo          ?? profile?.estilo          ?? null,
       resumen:         json.resumen         ?? profile?.resumen         ?? null,
-    });
-    await ensureCustomer(phone, {
-      display_name: json.nombre ?? profile?.display_name ?? profile?.nombre ?? null,
-      communication_style: json.estilo ?? profile?.communication_style ?? profile?.estilo ?? null,
-      customer_safe_summary: json.resumen ?? profile?.customer_safe_summary ?? null,
+      ultimo_servicio: json.ultimo_servicio ?? profile?.ultimo_servicio ?? null,
     });
   } catch (err) {
     console.error('[AI] Error actualizando perfil del cliente:', err.message);
@@ -397,7 +369,7 @@ async function processMessage(phone, input) {
     : systemPrompt;
 
   // Memoria de largo plazo: inyectar el perfil del cliente si existe
-  const profile = await getCustomerSafeContext(phone) || await getClientProfile(phone);
+  const profile = await getClientProfile(phone);
 
   // Ventana de historial: cliente NUEVO (sin perfil/resumen) → 60 mensajes;
   // cliente que ya habló antes (tiene resumen) → 30, porque su memoria de largo
@@ -406,8 +378,8 @@ async function processMessage(phone, input) {
 
   if (profile) {
     contextualPrompt +=
-      '\n\nPERFIL SEGURO DEL CLIENTE (solo datos permitidos para esta conversación; usalo para personalizar ' +
-      'el trato. No afirmes servicios previos, diagnósticos ni condiciones internas):\n' +
+      '\n\nPERFIL DEL CLIENTE (memoria de interacciones previas; usalo para personalizar el trato, ' +
+      'saludarlo por su nombre, recordar su pedido y ADAPTAR TU TONO al de él):\n' +
       formatClientProfile(profile);
   }
 
@@ -420,10 +392,6 @@ async function processMessage(phone, input) {
       'cálidamente y registrá su valoración con la herramienta record_service_rating. Si su nota es baja ' +
       '(1 a 6), pedí disculpas y ofrecé que el dueño lo contacte. No insistas si no quiere participar.';
   }
-
-  // Reafirmar la jerarquía después de todos los bloques dinámicos. De esta
-  // forma perfil/reseña/historial nunca pueden desplazar el prompt del panel.
-  contextualPrompt += `\n\n${OFFICIAL_PROMPT_PRIORITY}`;
 
   // Agregar mensaje al historial
   const history = [...state.history, userMessage];

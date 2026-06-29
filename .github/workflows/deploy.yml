@@ -12,32 +12,18 @@ jobs:
     steps:
       - name: Actualizar el VPS por SSH
         uses: appleboy/ssh-action@v1.0.3
-        env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           port: ${{ secrets.VPS_PORT || 22 }}
-          envs: SUPABASE_URL,SUPABASE_SECRET_KEY
           script: |
             set -e
-            upsert_env() {
-              file="$1"
-              key="$2"
-              value="$3"
-              touch "$file"
-              if grep -q "^${key}=" "$file"; then
-                sed -i "s|^${key}=.*|${key}=${value}|" "$file"
-              else
-                printf '\n%s=%s\n' "$key" "$value" >> "$file"
+            for env_file in /docker/turneo/.env /docker/turneo/app/.env; do
+              if [ -f "$env_file" ]; then
+                sed -i '/^SUPABASE_URL=/d; /^SUPABASE_SECRET_KEY=/d' "$env_file"
               fi
-            }
-            upsert_env /docker/turneo/.env SUPABASE_URL "$SUPABASE_URL"
-            upsert_env /docker/turneo/.env SUPABASE_SECRET_KEY "$SUPABASE_SECRET_KEY"
-            upsert_env /docker/turneo/app/.env SUPABASE_URL "$SUPABASE_URL"
-            upsert_env /docker/turneo/app/.env SUPABASE_SECRET_KEY "$SUPABASE_SECRET_KEY"
+            done
             cd /docker/turneo/app
             git pull origin main
             cd /docker/turneo

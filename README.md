@@ -23,17 +23,6 @@ npm start              # o: npm run dev
 ```
 
 Abrir `http://localhost:3000` (contraseña en `DASHBOARD_PASSWORD`) y escanear el QR
-
-## Memoria privada y seguimientos (Supabase)
-
-1. Ejecutar `supabase/migrations/20260628_customer_memory_and_followups.sql` en el SQL Editor.
-2. Configurar `SUPABASE_URL` y `SUPABASE_SECRET_KEY` en el servidor/VPS.
-3. Activar “Seguimiento si no responde” desde Turnos en el dashboard.
-
-La información de servicios realizados, condición del vehículo y notas se guarda como
-`internal_only`: solo el asistente del dueño puede consultarla. El bot de clientes recibe
-una vista separada que no contiene esos antecedentes. Cada consulta puede generar como
-máximo dos seguimientos; una respuesta, pausa, bloqueo o turno creado cancela la secuencia.
 para vincular WhatsApp.
 
 ---
@@ -162,11 +151,6 @@ El panel sirve para **configuración avanzada y control**: prompts del bot y del
 asistente, servicios y precios, capacidad/horarios/días laborables, números admin,
 estado de WhatsApp/Instagram, historial de chats y excepciones. **La operación diaria
 no lo requiere** — se hace desde WhatsApp.
-
-El texto de **Configurar IA** es el prompt oficial y tiene máxima prioridad. Los
-bloques automáticos (fecha, servicios, precios, perfil seguro, reseñas e historial)
-solo agregan contexto y no pueden contradecirlo. El prompt genérico del código se usa
-únicamente al crear una base nueva que todavía no tenga `ai_prompt`.
 
 ---
 

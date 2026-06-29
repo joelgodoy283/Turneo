@@ -16,7 +16,6 @@ const {
 const cal = require('../calendar');
 const local = require('../calendar/local-calendar');
 const { callOpenRouter, currentDateLine, normalizeInput, withCurrentMedia } = require('./openrouter');
-const { recordServiceHistory, getInternalCustomerContext } = require('../supabase/client');
 
 const TZ = 'America/Argentina/Buenos_Aires';
 const MAX_HISTORY_MESSAGES = 20;
@@ -37,12 +36,6 @@ ADEMÁS DE LA AGENDA, PODÉS (tenés herramientas para esto):
 - Poner a un cliente en modo MANUAL (lo atendés vos, el bot no le responde) o devolverlo a modo BOT (set_contact_bot_mode).
 - Cambiar de forma simple la agenda: capacidad por día, horarios ofrecidos, días laborables (set_business_hours).
 Cuando una acción afecta a un cliente real o cambia la configuración, confirmá con el dueño antes.
-
-MEMORIA INTERNA:
-- Cuando el dueño confirme un trabajo realizado o el estado de un vehículo, registralo con record_service_history.
-- No deduzcas trabajos realizados desde consultas del cliente.
-- Consultá antecedentes con get_customer_history cuando el cliente vuelva.
-- Servicios, diagnósticos, condiciones y notas internas jamás deben enviarse a un cliente.
 
 FECHA Y HORA ACTUAL:
 Hoy es ${texto}. En ISO: ${iso}. Usá SIEMPRE esta fecha para interpretar "hoy", "mañana", "el viernes", etc., y pasá las fechas a las herramientas en formato YYYY-MM-DD.`;
@@ -343,36 +336,6 @@ const ASSISTANT_TOOLS = [
       },
     },
   },
-  {
-    type: 'function',
-    function: {
-      name: 'record_service_history',
-      description: 'Registra un trabajo REAL confirmado por el dueño y la condición interna del vehículo. Si el cliente es ambiguo, buscá primero el turno.',
-      parameters: {
-        type: 'object',
-        properties: {
-          appointment_id: { type: 'number' }, client_phone: { type: 'string' },
-          customer_name: { type: 'string' }, vehicle: { type: 'string' },
-          service_date: { type: 'string', description: 'YYYY-MM-DD' },
-          work_performed: { type: 'string' }, vehicle_condition: { type: 'string' },
-          mileage: { type: 'number' }, unresolved_items: { type: 'string' },
-        },
-        required: ['work_performed'],
-      },
-    },
-  },
-  {
-    type: 'function',
-    function: {
-      name: 'get_customer_history',
-      description: 'Consulta para el dueño el historial interno de trabajos y condiciones. Nunca envíes el resultado al cliente.',
-      parameters: {
-        type: 'object',
-        properties: { appointment_id: { type: 'number' }, client_phone: { type: 'string' } },
-        required: [],
-      },
-    },
-  },
 ];
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
@@ -465,41 +428,6 @@ async function sendToOwnerAndRemember(text) {
 
 async function executeAssistantTool(toolName, args) {
   try {
-    if (toolName === 'record_service_history') {
-      const appt = args.appointment_id ? getAppointmentById(args.appointment_id) : null;
-      const contactKey = appt?.client_phone || args.client_phone;
-      if (!contactKey) return JSON.stringify({ success: false, error: 'Falta turno o teléfono del cliente.' });
-      const result = await recordServiceHistory({
-        contactKey,
-        customerName: appt?.client_name || args.customer_name,
-        vehicleLabel: appt?.detail || args.vehicle,
-        serviceDate: args.service_date || local.todayAR(),
-        workPerformed: args.work_performed,
-        vehicleCondition: args.vehicle_condition,
-        mileage: args.mileage,
-        unresolvedItems: args.unresolved_items,
-        appointmentId: appt?.id || null,
-      });
-      return JSON.stringify(result.success ? {
-        success: true,
-        message: `Antecedente interno registrado para ${appt?.client_name || args.customer_name || contactKey}. No se comparte con el cliente.`,
-        service_record_id: result.record?.id,
-      } : result);
-    }
-
-    if (toolName === 'get_customer_history') {
-      const appt = args.appointment_id ? getAppointmentById(args.appointment_id) : null;
-      const contactKey = appt?.client_phone || args.client_phone;
-      if (!contactKey) return JSON.stringify({ success: false, error: 'Falta turno o teléfono.' });
-      const context = await getInternalCustomerContext(contactKey);
-      return JSON.stringify({
-        success: true,
-        customer: appt?.client_name || context?.customer?.display_name || contactKey,
-        internal_context: context || { services: [], notes: [] },
-        confidentiality: 'Solo para el dueño/administradores. No enviar al cliente.',
-      }).slice(0, 10000);
-    }
-
     if (toolName === 'list_appointments') {
       const from = args.date || local.todayAR();
       const to = args.date_to || from;
