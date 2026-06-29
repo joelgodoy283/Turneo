@@ -196,11 +196,51 @@ async function scheduleFollowup({ contactKey, channel, triggerMessageId, nextRun
 async function claimDueFollowups(limit = 25) {
   if (!supabase) return [];
   const { data, error } = await supabase.rpc('lc_claim_due_followups', { p_limit: limit });
-  if (error) {
+  if (!error) return data || [];
+
+  // Algunos proyectos no refrescan/publican la RPC inmediatamente. En ese caso
+  // usamos compare-and-set sobre cada fila: solo una instancia puede cambiarla
+  // de pending a processing, evitando envíos duplicados.
+  if (error.code !== 'PGRST202') {
     console.error('[SUPABASE] Error tomando seguimientos:', error.message);
     return [];
   }
-  return data || [];
+
+  const now = new Date();
+  const staleBefore = new Date(now.getTime() - 15 * 60 * 1000).toISOString();
+  await supabase.from('lc_followup_sequences')
+    .update({ status: 'pending', locked_at: null, updated_at: now.toISOString() })
+    .eq('status', 'processing')
+    .lt('locked_at', staleBefore);
+
+  const { data: candidates, error: selectError } = await supabase
+    .from('lc_followup_sequences')
+    .select('*')
+    .eq('status', 'pending')
+    .lte('next_run_at', now.toISOString())
+    .order('next_run_at', { ascending: true })
+    .limit(Math.max(1, Math.min(Number(limit) || 25, 100)));
+  if (selectError) {
+    console.error('[SUPABASE] Error buscando seguimientos:', selectError.message);
+    return [];
+  }
+
+  const claimed = [];
+  for (const row of candidates || []) {
+    const { data: updated, error: updateError } = await supabase
+      .from('lc_followup_sequences')
+      .update({ status: 'processing', locked_at: now.toISOString(), updated_at: now.toISOString() })
+      .eq('id', row.id)
+      .eq('status', 'pending')
+      .select('*')
+      .maybeSingle();
+    if (updateError) {
+      console.error('[SUPABASE] Error bloqueando seguimiento:', updateError.message);
+    } else if (updated) {
+      claimed.push(updated);
+    }
+  }
+  return claimed;
 }
 
 async function completeFollowupAttempt(id, attemptCount, nextRunAt = null) {
