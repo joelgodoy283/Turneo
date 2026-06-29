@@ -216,6 +216,7 @@ async function initDB() {
   seedConfig('review_enabled', 'true');              // pedido de reseña post-servicio
   seedConfig('morning_summary_enabled', 'true');     // resumen matutino (8:00) al dueño
   seedConfig('checkin_enabled', 'true');             // check-in de servicio (10:00) con el dueño
+  seedConfig('followup_enabled', 'true');            // máximo dos seguimientos por consulta
   seedConfig('assistant_prompt', DEFAULT_ASSISTANT_PROMPT); // prompt del modo asistente del dueño
   seedConfig('admin_numbers', '');                   // números admin extra (coma) además de owner_number / ENV
   seedConfig('media_transcribe_enabled', 'true');    // transcribir audios / describir imágenes para el historial

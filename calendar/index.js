@@ -12,6 +12,21 @@ const google = require('./google-calendar');
 const local = require('./local-calendar');
 const db = require('../database/db');
 const { notifyOwner } = require('../whatsapp/notify');
+const { ensureCustomer, getInternalCustomerContext, cancelFollowups } = require('../supabase/client');
+
+function internalBrief(context) {
+  if (!context?.services?.length && !context?.notes?.length) return '';
+  const lines = ['\n🔒 *Antecedentes internos (no enviar al cliente)*'];
+  for (const s of (context.services || []).slice(0, 3)) {
+    let line = `• ${s.service_date}: ${s.work_performed}`;
+    if (s.vehicle_condition) line += ` | Estado: ${s.vehicle_condition}`;
+    if (s.mileage) line += ` | ${s.mileage} km`;
+    if (s.unresolved_items) line += ` | Pendiente: ${s.unresolved_items}`;
+    lines.push(line);
+  }
+  for (const n of (context.notes || []).slice(0, 2)) lines.push(`• Nota: ${n.note}`);
+  return lines.join('\n');
+}
 
 /** ¿Está Google Calendar configurado (credenciales + token)? */
 function usingGoogle() {
@@ -52,6 +67,9 @@ async function createAppointment(data) {
   });
   if (!res.success) return res;
 
+  await ensureCustomer(data.client_phone, { display_name: data.client_name }).catch(() => {});
+  await cancelFollowups(data.client_phone, 'appointment_created').catch(() => {});
+
   // Espejo en Google Calendar (no bloqueante: si falla, el turno propio queda igual)
   if (usingGoogle() && data.start_time) {
     try {
@@ -75,13 +93,14 @@ async function createAppointment(data) {
   // Aviso al dueño (se omite si lo creó el propio el dueño a mano)
   if (data.notifyOwner !== false) {
     const tel = db.normalizePhone(data.client_phone);
+    const context = await getInternalCustomerContext(data.client_phone).catch(() => null);
     const ownerMsg =
       `🗓️ *Nuevo turno agendado*\n` +
       `Cliente: ${data.client_name || '—'}\n` +
       `Detalle: ${data.detail || '—'}\n` +
       (data.service ? `Servicio: ${data.service}\n` : '') +
       `Día: ${data.date}${data.start_time ? ` a las ${data.start_time} hs` : ''}\n` +
-      `Tel: ${tel}`;
+      `Tel: ${tel}` + internalBrief(context);
     notifyOwner(ownerMsg).catch(() => {});
   }
 

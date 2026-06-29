@@ -687,6 +687,7 @@ async function loadTurnosConfig() {
   chk('cfg-checkin', c.checkin_enabled);
   chk('cfg-reminder', c.reminder_enabled);
   chk('cfg-review', c.review_enabled);
+  chk('cfg-followup', c.followup_enabled);
 
   const days = (c.cal_workdays || '').split(',').map(s => s.trim());
   for (let d = 0; d <= 6; d++) {
@@ -712,6 +713,7 @@ document.getElementById('btn-save-turnos')?.addEventListener('click', async () =
     checkin_enabled: document.getElementById('cfg-checkin').checked,
     reminder_enabled: document.getElementById('cfg-reminder').checked,
     review_enabled: document.getElementById('cfg-review').checked,
+    followup_enabled: document.getElementById('cfg-followup').checked,
   };
   const res = await apiFetch('/api/config/turnos', {
     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),

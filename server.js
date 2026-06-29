@@ -19,6 +19,7 @@ const { startMorningSummary } = require('./jobs/morning-summary');
 const { startReminders } = require('./jobs/reminders');
 const { startServiceCycle } = require('./jobs/service-cycle');
 const { startReviews } = require('./jobs/reviews');
+const { startFollowups } = require('./jobs/followups');
 
 // ─── Express + Socket.io ────────────────────────────────────────────────────
 const app = express();
@@ -129,6 +130,7 @@ async function main() {
   startReminders();      // recordatorio de turno al cliente — 11:00
   startServiceCycle();   // check-in 10:00 + poller de finalización (avisa retiro al cliente)
   startReviews();        // pedido de reseña al día siguiente del servicio (10:00) + fallback 1-10
+  startFollowups();      // consultas sin respuesta, máximo dos seguimientos
 
   // 4. Instagram usa tokens guardados en DB, no necesita restauración de sesión
   const igStatus = getInstagramStatus();

@@ -1,7 +1,10 @@
 const axios = require('axios');
 const { getConfig, getServices, getConversationState, saveConversationState, getPendingReview } = require('../database/db');
 const { TOOL_DEFINITIONS, executeTool } = require('./tools');
-const { isEnabled: supabaseEnabled, getClientProfile, upsertClientProfile } = require('../supabase/client');
+const {
+  isEnabled: supabaseEnabled,
+  getClientProfile, upsertClientProfile, ensureCustomer, getCustomerSafeContext,
+} = require('../supabase/client');
 
 const OPENROUTER_BASE_URL = 'https://openrouter.ai/api/v1';
 // Ventana de historial dinámica: cliente nuevo (sin perfil) 60, recurrente 30.
@@ -291,11 +294,15 @@ ${lines.join('\n')}`;
  */
 function formatClientProfile(p) {
   const parts = [];
-  if (p.nombre)          parts.push(`Nombre: ${p.nombre}`);
-  if (p.vehiculos)       parts.push(`Detalle(s): ${p.vehiculos}`);
-  if (p.estilo)          parts.push(`Estilo de habla: ${p.estilo}`);
-  if (p.ultimo_servicio) parts.push(`Último servicio: ${p.ultimo_servicio}`);
-  if (p.resumen)         parts.push(`Resumen: ${p.resumen}`);
+  const name = p.display_name || p.nombre;
+  const style = p.communication_style || p.estilo;
+  const vehicles = Array.isArray(p.vehicles)
+    ? p.vehicles.map((v) => v.label || [v.make, v.model, v.model_year].filter(Boolean).join(' ')).filter(Boolean).join(', ')
+    : p.vehiculos;
+  if (name) parts.push(`Nombre: ${name}`);
+  if (vehicles) parts.push(`Detalle/vehículo(s): ${vehicles}`);
+  if (style) parts.push(`Estilo de habla: ${style}`);
+  // Servicios, diagnósticos y notas internas nunca entran al modelo de clientes.
   return parts.join('\n');
 }
 
@@ -317,7 +324,7 @@ function parseJsonLoose(raw) {
 async function maybeUpdateClientProfile(phone, history) {
   if (!supabaseEnabled()) return;
   try {
-    const profile = await getClientProfile(phone);
+    const profile = await getCustomerSafeContext(phone) || await getClientProfile(phone);
     const userMsgs = history.filter((m) => m.role === 'user').length;
     if (profile && userMsgs % 4 !== 0) return; // throttle
 
@@ -330,8 +337,9 @@ async function maybeUpdateClientProfile(phone, history) {
     const sys =
       'Analizá la conversación y devolvé SOLO un JSON válido (sin texto extra) con las claves: ' +
       'nombre (string|null), vehiculos (string|null), estilo (cómo habla el cliente: formal/informal, ' +
-      'usa modismos, mensajes largos/cortos, etc.), resumen (1-2 frases sobre quién es y qué necesita), ' +
-      'ultimo_servicio (string|null). Si un dato no aparece, devolvé null o mantené lo ya conocido.';
+      'usa modismos, mensajes largos/cortos, etc.) y resumen (1 frase no sensible). ' +
+      'No deduzcas ni registres servicios realizados, diagnósticos ni condiciones internas. ' +
+      'Si un dato no aparece, devolvé null o mantené lo ya conocido.';
     const user = (profile ? `Perfil actual: ${JSON.stringify(profile)}\n\n` : '') + `Conversación:\n${transcript}`;
 
     const raw = await simpleCompletion(sys, user);
@@ -343,7 +351,11 @@ async function maybeUpdateClientProfile(phone, history) {
       vehiculos:       json.vehiculos       ?? profile?.vehiculos       ?? null,
       estilo:          json.estilo          ?? profile?.estilo          ?? null,
       resumen:         json.resumen         ?? profile?.resumen         ?? null,
-      ultimo_servicio: json.ultimo_servicio ?? profile?.ultimo_servicio ?? null,
+    });
+    await ensureCustomer(phone, {
+      display_name: json.nombre ?? profile?.display_name ?? profile?.nombre ?? null,
+      communication_style: json.estilo ?? profile?.communication_style ?? profile?.estilo ?? null,
+      customer_safe_summary: json.resumen ?? profile?.customer_safe_summary ?? null,
     });
   } catch (err) {
     console.error('[AI] Error actualizando perfil del cliente:', err.message);
@@ -369,7 +381,7 @@ async function processMessage(phone, input) {
     : systemPrompt;
 
   // Memoria de largo plazo: inyectar el perfil del cliente si existe
-  const profile = await getClientProfile(phone);
+  const profile = await getCustomerSafeContext(phone) || await getClientProfile(phone);
 
   // Ventana de historial: cliente NUEVO (sin perfil/resumen) → 60 mensajes;
   // cliente que ya habló antes (tiene resumen) → 30, porque su memoria de largo
@@ -378,8 +390,8 @@ async function processMessage(phone, input) {
 
   if (profile) {
     contextualPrompt +=
-      '\n\nPERFIL DEL CLIENTE (memoria de interacciones previas; usalo para personalizar el trato, ' +
-      'saludarlo por su nombre, recordar su pedido y ADAPTAR TU TONO al de él):\n' +
+      '\n\nPERFIL SEGURO DEL CLIENTE (solo datos permitidos para esta conversación; usalo para personalizar ' +
+      'el trato. No afirmes servicios previos, diagnósticos ni condiciones internas):\n' +
       formatClientProfile(profile);
   }
 
