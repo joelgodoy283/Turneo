@@ -19,11 +19,6 @@ jobs:
           port: ${{ secrets.VPS_PORT || 22 }}
           script: |
             set -e
-            for env_file in /docker/turneo/.env /docker/turneo/app/.env; do
-              if [ -f "$env_file" ]; then
-                sed -i '/^SUPABASE_URL=/d; /^SUPABASE_SECRET_KEY=/d' "$env_file"
-              fi
-            done
             cd /docker/turneo/app
             git pull origin main
             cd /docker/turneo
