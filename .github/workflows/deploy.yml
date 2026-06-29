@@ -19,8 +19,8 @@ jobs:
           port: ${{ secrets.VPS_PORT || 22 }}
           script: |
             set -e
-            cd ~/Turneo
+            cd /docker/turneo/app
             git pull origin main
-            npm install --omit=dev
-            pm2 restart turneo || pm2 start server.js --name turneo
-            pm2 save
+            cd /docker/turneo
+            docker compose up -d --build turneo
+            docker image prune -f
